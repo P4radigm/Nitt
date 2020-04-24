@@ -1,21 +1,31 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 public class PlayerBehaviour : MonoBehaviour
 {
     [Header("Teleport tweaks")]
     [SerializeField] private float maxTeleportDistance = 1;
+    [SerializeField] private float distanceThreshold = 0.1f;
 
     [Header("Game Feel")]
     [SerializeField] private float timeSlow = 0.5f;
     [SerializeField] private float speedMod = 1f;
 
+    [Header("PlayerStats")]
+    public int hitPoints;
+    public int teleportCells;
+
+    [Header("PlayerStatsTweaks")]
+    [SerializeField] int maxHitPoints;
+    [SerializeField] int maxTeleportCells;
+
     [Header("Needed")]
     [SerializeField] private GameObject teleportTargetGraphic = null;
     [SerializeField] private GameObject teleportTarget = null;
-
-
+    [SerializeField] private Slider healthSlider;
+    [SerializeField] private Slider teleportSlider;
 
     private float fixedDeltaTime;
     private bool notTeleported = false;
@@ -26,6 +36,7 @@ public class PlayerBehaviour : MonoBehaviour
     private Vector2 beginPointPos = Vector2.zero;
     private Vector2 endPointPos = Vector2.zero;
     private Vector2 moveDirection = Vector2.up;
+    [HideInInspector] public Vector2 lastGroundPos = Vector2.zero;
     private float moveDirectionDistance = 0;
     float moveDirectionAngle = 0;
 
@@ -44,14 +55,19 @@ public class PlayerBehaviour : MonoBehaviour
     {
         Input.simulateMouseWithTouches = true;
         playerRigidbody2D = GetComponent<Rigidbody2D>();
-
+        hitPoints = maxHitPoints;
+        teleportCells = maxTeleportCells;
+        healthSlider.maxValue = maxHitPoints;
+        teleportSlider.maxValue = maxTeleportCells;
     }
 
     // Update is called once per frame
     void FixedUpdate()
     {
+        //Debug.Log(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+
         //Player Input
-        if (Input.GetMouseButton(0))
+        if (Input.GetMouseButton(0) && teleportCells > 0)
         {
             TimeSlow();
             CalcTargetPos();
@@ -64,15 +80,28 @@ public class PlayerBehaviour : MonoBehaviour
             RayCastCheck ttRayCastCheck = teleportTarget.GetComponent<RayCastCheck>();
             RayCastCheck ttgRayCastCheck = teleportTargetGraphic.GetComponent<RayCastCheck>();
 
-            if (ttRayCastCheck.distIndex != ttgRayCastCheck.distIndex && ttRayCastCheck.distances[ttRayCastCheck.distIndex] > 0 && ttRayCastCheck.distances[ttRayCastCheck.distIndex] > ttgRayCastCheck.distances[ttgRayCastCheck.distIndex])
+            teleportTarget.transform.position = teleportPoint;
+
+            if (ttRayCastCheck.distIndex != ttgRayCastCheck.distIndex && ttRayCastCheck.distances[ttRayCastCheck.distIndex] > 0 && ttRayCastCheck.distances[ttRayCastCheck.distIndex] <= ttgRayCastCheck.distances[ttgRayCastCheck.distIndex])
             {
-                teleportTargetGraphic.transform.position = teleportTarget.transform.position;
+                if(ttgRayCastCheck.distances[ttgRayCastCheck.distIndex] < distanceThreshold)
+                {
+                    teleportTargetGraphic.transform.position = ttRayCastCheck.rayCastHits[ttRayCastCheck.distIndex].point + (ttRayCastCheck.rayCastHits[ttRayCastCheck.distIndex].normal)*(transform.localScale.x/2);
+                }
+            }
+            else if (ttRayCastCheck.distIndex != ttgRayCastCheck.distIndex && ttRayCastCheck.distances[ttRayCastCheck.distIndex] > 0 && ttRayCastCheck.distances[ttRayCastCheck.distIndex] > ttgRayCastCheck.distances[ttgRayCastCheck.distIndex])
+            {
+                if (ttgRayCastCheck.distances[ttgRayCastCheck.distIndex] < distanceThreshold)
+                {
+                    teleportTargetGraphic.transform.position = teleportTarget.transform.position;
+                }
             }
             else
             {
+
+                teleportTargetGraphic.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
                 Vector2 speed = (teleportPoint - new Vector2(teleportTargetGraphic.transform.position.x, teleportTargetGraphic.transform.position.y)) * speedMod * Time.deltaTime;
                 teleportTargetGraphic.GetComponent<Rigidbody2D>().velocity = speed;
-                teleportTarget.transform.position = teleportPoint;
             }
 
             //Debug
@@ -89,8 +118,32 @@ public class PlayerBehaviour : MonoBehaviour
                 notTeleported = false;
             }
 
+            //GroundCheck
+            RaycastHit2D groundRay = Physics2D.Raycast(transform.position, Vector2.down, 0.6f);
+            if(groundRay.collider != null && groundRay.collider.tag == "Ground")
+            {
+                lastGroundPos = transform.position;
+            }
             //graphics
             teleportTargetGraphic.SetActive(false);
+        }
+
+        if(hitPoints > maxHitPoints)
+        {
+            hitPoints = maxHitPoints;
+        }
+
+        if(teleportCells > maxTeleportCells)
+        {
+            teleportCells = maxTeleportCells;
+        }
+
+        healthSlider.value = hitPoints;
+        teleportSlider.value = teleportCells;
+
+        if(hitPoints == 0)
+        {
+            Death();
         }
     }
 
@@ -132,6 +185,20 @@ public class PlayerBehaviour : MonoBehaviour
         playerRigidbody2D.velocity = Vector2.zero;
         teleportTargetGraphic.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
 
+        teleportCells--;
+
         beginPhaseMouse = true;
+    }
+
+    public void EnvironmentDamage()
+    {
+        GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+        transform.position = lastGroundPos;
+        hitPoints--;
+    }
+
+    private void Death()
+    {
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
