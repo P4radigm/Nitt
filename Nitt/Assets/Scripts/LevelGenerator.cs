@@ -52,11 +52,13 @@ public class LevelGenerator : MonoBehaviour
     private int currentListIndex = 0;
     private Transform[][] startingPosArrays;
     private GameObject[][] Rooms;
+    private Vector3 prevGeneratorPos;
     private float direction = 1f;
     private int startingSide;
     private int startingPos;
     private bool generationFinished = false;
     private bool firstDistanceCalculated = false;
+    private bool correctRooms = false;
 
     //Room types:
     //0 -> L
@@ -74,31 +76,44 @@ public class LevelGenerator : MonoBehaviour
     //12 -> LRT
     //13 -> LRB
     //14 -> LRBT
-    
+
     void Start()
     {
         startingPosArrays = new Transform[4][];
-        startingPosArrays[0] = leftStartingPositions;
-        startingPosArrays[1] = topStartingPositions;
-        startingPosArrays[2] = rightStartingPositions;
+        startingPosArrays[0] = rightStartingPositions;
+        startingPosArrays[1] = leftStartingPositions;
+        startingPosArrays[2] = topStartingPositions;
         startingPosArrays[3] = bottomStartingPositions;
 
-        Rooms = new GameObject[4][];
-        Rooms[0] = RoomsR;
-        Rooms[1] = RoomsB;
-        Rooms[2] = RoomsL;
-        Rooms[3] = RoomsT;
+        Rooms = new GameObject[15][];
+        Rooms[0] = RoomsL;
+        Rooms[1] = RoomsT;
+        Rooms[2] = RoomsR;
+        Rooms[3] = RoomsB;
+        Rooms[4] = RoomsLR;
+        Rooms[5] = RoomsTB;
+        Rooms[6] = RoomsLT;
+        Rooms[7] = RoomsLB;
+        Rooms[8] = RoomsRT;
+        Rooms[9] = RoomsRB;
+        Rooms[10] = RoomsTBL;
+        Rooms[11] = RoomsTBR;
+        Rooms[12] = RoomsLRT;
+        Rooms[13] = RoomsLRB;
+        Rooms[14] = RoomsLRBT;
 
+        //Pick random starting side
         startingSide = Random.Range(0, startingPosArrays.Length);
         startingPos = Random.Range(0, startingPosArrays[startingSide].Length);
 
+        //spawn starting room
         transform.position = startingPosArrays[startingSide][startingPos].position;
-        //GameObject startingRoom = Instantiate(Rooms[startingSide][Random.Range(0, Rooms[startingSide].Length)], transform.position, Quaternion.identity, transform.parent);
-        GameObject startingRoom = Instantiate(RoomsLRBT[1], transform.position, Quaternion.identity, transform.parent);
+        prevGeneratorPos = transform.position;
+        GameObject startingRoom = Instantiate(Rooms[startingSide][Random.Range(0, Rooms[startingSide].Length)], transform.position, Quaternion.identity, transform.parent);
+
+        //add starting room to the spawned rooms list and add to current list index
         spawnedRooms.Add(startingRoom);
         currentListIndex++;
-
-        //direction = Random.Range(0, goLeftChance + goTopChance + goRightChance + goBottomChance);
     }
 
     // Update is called once per frame
@@ -106,18 +121,41 @@ public class LevelGenerator : MonoBehaviour
     {
         if(timeBtwRoom <= 0 && !generationFinished)
         {
-            Debug.Log(direction);
-            if (startingSide == 0) { MoveRight(); }
-            else if (startingSide == 1) { MoveBottom(); }
-            else if (startingSide == 2) { MoveLeft(); }
+            //main path spawner
+            if (startingSide == 0) { MoveLeft(); }
+            else if (startingSide == 1) { MoveRight(); }
+            else if (startingSide == 2) { MoveBottom(); }
             else if (startingSide == 3) { MoveTop(); }
             else { Debug.LogError("Out of range error: startingSide"); }
             timeBtwRoom = startTimeBtwRoom;
         }
-        else
+        else if (!generationFinished)
         {
-            //Debug.Log(generationFinished);
             timeBtwRoom -= Time.deltaTime;
+        }
+        else if (!correctRooms)
+        {
+            int beginCount = spawnedRooms.Count;
+            Debug.Log("beginCount = " + beginCount);
+
+            //update rooms to correct shape
+            for (int i = 0; i < beginCount; i++)
+            {
+                RoomType rt = spawnedRooms[i].GetComponent<RoomType>();
+
+                rt.CheckRoom(spawnedRooms, i);
+
+                if (rt.afterCheckType != rt.roomType)
+                {
+                    GameObject badRoom = spawnedRooms[i];
+                    Vector3 curPos = spawnedRooms[i].transform.position;
+                    spawnedRooms.Remove(badRoom);
+                    Destroy(badRoom);
+                    GameObject correctRoom = Instantiate(Rooms[rt.afterCheckType][Random.Range(0, Rooms[rt.afterCheckType].Length)], curPos, Quaternion.identity, transform.parent);
+                    spawnedRooms.Insert(i, correctRoom);
+                }
+            }
+            correctRooms = true;
         }
 
 
@@ -131,6 +169,7 @@ public class LevelGenerator : MonoBehaviour
         float worldBottomChance = localLeftChance;
 
         if (!firstDistanceCalculated) { direction = Random.Range(0, worldTopChance + worldBottomChance + worldRightChance); firstDistanceCalculated = true; }
+        //Debug.Log(direction);
 
         if (direction >= 0 && direction < worldTopChance)
         {
@@ -191,7 +230,12 @@ public class LevelGenerator : MonoBehaviour
             Debug.LogError("Out of range exception: direction");
         }
 
-        if (!generationFinished) { Instantiate(RoomsLRBT[1], transform.position, Quaternion.identity, transform.parent); }
+        if (!generationFinished && prevGeneratorPos != transform.position) 
+        {
+            prevGeneratorPos = transform.position;
+            GameObject newRoom = Instantiate(RoomsLRBT[1], transform.position, Quaternion.identity, transform.parent);
+            spawnedRooms.Add(newRoom);
+        }
     }
 
     private void MoveBottom()
@@ -202,6 +246,7 @@ public class LevelGenerator : MonoBehaviour
         float worldBottomChance = localBottomChance;
 
         if (!firstDistanceCalculated) { direction = Random.Range(0, worldRightChance + worldLeftChance + worldBottomChance); firstDistanceCalculated = true; }
+        //Debug.Log(direction);
 
         if (direction >= 0 && direction < worldRightChance)
         {
@@ -262,7 +307,12 @@ public class LevelGenerator : MonoBehaviour
             Debug.LogError("Out of range exception: direction");
         }
 
-        if (!generationFinished) { Instantiate(RoomsLRBT[1], transform.position, Quaternion.identity, transform.parent); }
+        if (!generationFinished && prevGeneratorPos != transform.position)
+        {
+            prevGeneratorPos = transform.position;
+            GameObject newRoom = Instantiate(RoomsLRBT[1], transform.position, Quaternion.identity, transform.parent);
+            spawnedRooms.Add(newRoom);
+        }
     }
 
     private void MoveLeft()
@@ -273,6 +323,7 @@ public class LevelGenerator : MonoBehaviour
         float worldBottomChance = localLeftChance;
 
         if (!firstDistanceCalculated) { direction = Random.Range(0, worldTopChance + worldBottomChance + worldLeftChance); firstDistanceCalculated = true; }
+        //Debug.Log(direction);
 
         if (direction >= 0 && direction < worldTopChance)
         {
@@ -333,7 +384,12 @@ public class LevelGenerator : MonoBehaviour
             Debug.LogError("Out of range exception: direction");
         }
 
-        if (!generationFinished) { Instantiate(RoomsLRBT[1], transform.position, Quaternion.identity, transform.parent); }
+        if (!generationFinished && prevGeneratorPos != transform.position)
+        {
+            prevGeneratorPos = transform.position;
+            GameObject newRoom = Instantiate(RoomsLRBT[1], transform.position, Quaternion.identity, transform.parent);
+            spawnedRooms.Add(newRoom);
+        }
     }
 
     private void MoveTop()
@@ -344,6 +400,7 @@ public class LevelGenerator : MonoBehaviour
         //float worldBottomChance = 0f;
 
         if (!firstDistanceCalculated) { direction = Random.Range(0, worldLeftChance + worldRightChance + worldTopChance); firstDistanceCalculated = true; }
+        //Debug.Log(direction);
 
         if (direction >= 0 && direction < worldLeftChance)
         {
@@ -404,7 +461,12 @@ public class LevelGenerator : MonoBehaviour
             Debug.LogError("Out of range exception: direction");
         }
 
-        if (!generationFinished) { Instantiate(RoomsLRBT[1], transform.position, Quaternion.identity, transform.parent); }
+        if (!generationFinished && prevGeneratorPos != transform.position)
+        {
+            prevGeneratorPos = transform.position;
+            GameObject newRoom = Instantiate(RoomsLRBT[1], transform.position, Quaternion.identity, transform.parent);
+            spawnedRooms.Add(newRoom);
+        }
     }
 
     //private void Move()

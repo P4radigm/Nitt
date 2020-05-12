@@ -8,10 +8,10 @@ public class PlayerBehaviour : MonoBehaviour
     [Header("Teleport tweaks")]
     [SerializeField] private float maxTeleportDistance = 1;
     [SerializeField] private float distanceThreshold = 0.1f;
+    [SerializeField] private float justTPTimer = 0.1f;
 
     [Header("Game Feel")]
     [SerializeField] private float timeSlow = 0.5f;
-    [SerializeField] private float speedMod = 1f;
 
     [Header("PlayerStats")]
     public int hitPoints;
@@ -36,8 +36,13 @@ public class PlayerBehaviour : MonoBehaviour
     private Vector2 beginPointPos = Vector2.zero;
     private Vector2 endPointPos = Vector2.zero;
     private Vector2 moveDirection = Vector2.up;
+    private Vector2 tpPoint = Vector2.zero;
     [HideInInspector] public Vector2 lastGroundPos = Vector2.zero;
+    [HideInInspector] public bool justTP = false;
     private float moveDirectionDistance = 0;
+    private float lastShortestDistance = 0;
+    private int lastDistIndex = 0;
+    private bool edgeTPNeeded = true;
     float moveDirectionAngle = 0;
 
     private Rigidbody2D playerRigidbody2D;
@@ -84,28 +89,46 @@ public class PlayerBehaviour : MonoBehaviour
 
             if (ttRayCastCheck.distIndex != ttgRayCastCheck.distIndex && ttRayCastCheck.distances[ttRayCastCheck.distIndex] > 0 && ttRayCastCheck.distances[ttRayCastCheck.distIndex] <= ttgRayCastCheck.distances[ttgRayCastCheck.distIndex])
             {
-                if(ttgRayCastCheck.distances[ttgRayCastCheck.distIndex] < distanceThreshold)
-                {
-                    teleportTargetGraphic.transform.position = ttRayCastCheck.rayCastHits[ttRayCastCheck.distIndex].point + (ttRayCastCheck.rayCastHits[ttRayCastCheck.distIndex].normal)*(transform.localScale.x/2);
-                }
+                teleportTargetGraphic.transform.position = ttRayCastCheck.rayCastHits[ttRayCastCheck.distIndex].point + (ttRayCastCheck.rayCastHits[ttRayCastCheck.distIndex].normal) * (transform.localScale.x / 2);
             }
             else if (ttRayCastCheck.distIndex != ttgRayCastCheck.distIndex && ttRayCastCheck.distances[ttRayCastCheck.distIndex] > 0 && ttRayCastCheck.distances[ttRayCastCheck.distIndex] > ttgRayCastCheck.distances[ttgRayCastCheck.distIndex])
             {
-                if (ttgRayCastCheck.distances[ttgRayCastCheck.distIndex] < distanceThreshold)
-                {
-                    teleportTargetGraphic.transform.position = teleportTarget.transform.position;
-                }
+                teleportTargetGraphic.transform.position = teleportTarget.transform.position;
+            }
+            else if (ttRayCastCheck.distances[ttRayCastCheck.distIndex] <= 0 && lastShortestDistance <= 0.5f && lastShortestDistance != 0f && ttgRayCastCheck.distances[ttgRayCastCheck.distIndex] != lastShortestDistance && edgeTPNeeded == true)
+            {
+                edgeTPNeeded = false;
+                Debug.Log(lastShortestDistance);
+                teleportTargetGraphic.transform.position = ttgRayCastCheck.rayCastHits[lastDistIndex].point + ttgRayCastCheck.rayCastHits[lastDistIndex].normal*0.5f;
+                //nothing
+                //lastShortestDistance = ttgRayCastCheck.distances[ttgRayCastCheck.distIndex];
+                //lastDistIndex = ttgRayCastCheck.distIndex;
+            }
+            else if(ttRayCastCheck.distances[ttRayCastCheck.distIndex] >= 0)
+            {
+                //Debug.Log(lastShortestDistance);
+                //teleportTargetTarget.transform.position = teleportPoint;
+
+                //teleportTarget.GetComponent<SpringJoint2D>().enabled = true;
+
+                teleportTargetGraphic.transform.position = tpPoint;
+
+                edgeTPNeeded = true;
+                lastShortestDistance = ttgRayCastCheck.distances[ttgRayCastCheck.distIndex];
+                lastDistIndex = ttgRayCastCheck.distIndex;
+
+                //teleportTargetGraphic.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+                //Vector2 speed = (teleportPoint - new Vector2(teleportTargetGraphic.transform.position.x, teleportTargetGraphic.transform.position.y)) * speedMod * Time.deltaTime;
+                //teleportTargetGraphic.GetComponent<Rigidbody2D>().velocity = speed;
             }
             else
             {
 
-                teleportTargetGraphic.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
-                Vector2 speed = (teleportPoint - new Vector2(teleportTargetGraphic.transform.position.x, teleportTargetGraphic.transform.position.y)) * speedMod * Time.deltaTime;
-                teleportTargetGraphic.GetComponent<Rigidbody2D>().velocity = speed;
             }
 
             //Debug
-            //Debug.DrawLine(beginPointPos, endPointPos);
+            Debug.DrawLine(beginPointPos, endPointPos, Color.magenta);
+            Debug.DrawLine(transform.position, teleportPoint, Color.red);
             //Debug.Log((Quaternion.Euler(0, 0, 90) * moveDirection).magnitude);
         }
         else
@@ -128,7 +151,7 @@ public class PlayerBehaviour : MonoBehaviour
             teleportTargetGraphic.SetActive(false);
         }
 
-        if(hitPoints > maxHitPoints)
+        if (hitPoints > maxHitPoints)
         {
             hitPoints = maxHitPoints;
         }
@@ -145,6 +168,8 @@ public class PlayerBehaviour : MonoBehaviour
         {
             Death();
         }
+
+        //Debug.Log(justTP);
     }
 
     private void TimeSlow()
@@ -177,13 +202,78 @@ public class PlayerBehaviour : MonoBehaviour
         moveDirectionDistance = Mathf.Clamp(Vector2.Distance(endPointPos, beginPointPos), 0f, maxTeleportDistance);
 
         teleportPoint = new Vector2(transform.position.x, transform.position.y) + (moveDirection * moveDirectionDistance);
+
+        tpPoint = teleportPoint;
+
+        RayCastCheck rcC = teleportTargetGraphic.GetComponent<RayCastCheck>();
+
+        if(rcC.rayCastHits[0].distance <= 0.5f || rcC.rayCastHitsC[0].distance <= 0.5f || rcC.rayCastHitsC[1].distance <= 0.5f)
+        {
+            //up
+            if (tpPoint.y > rcC.rayCastHits[0].point.y - 0.5f)
+            {
+                tpPoint.y = rcC.rayCastHits[0].point.y - 0.5f;
+            }
+        }
+
+        if (rcC.rayCastHits[1].distance <= 0.5f || rcC.rayCastHitsC[2].distance <= 0.5f || rcC.rayCastHitsC[3].distance <= 0.5f)
+        {
+            //right
+            if (tpPoint.x > rcC.rayCastHits[1].point.x - 0.5f)
+            {
+                tpPoint.x = rcC.rayCastHits[1].point.x - 0.5f;
+            }
+        }
+
+        if (rcC.rayCastHits[2].distance <= 0.5f || rcC.rayCastHitsC[4].distance <= 0.5f || rcC.rayCastHitsC[5].distance <= 0.5f)
+        {
+            //down
+            if (tpPoint.y < rcC.rayCastHits[2].point.y + 0.5f)
+            {
+                tpPoint.y = rcC.rayCastHits[2].point.y + 0.5f;
+            }
+        }
+
+        if (rcC.rayCastHits[3].distance <= 0.5f || rcC.rayCastHitsC[6].distance <= 0.5f || rcC.rayCastHitsC[7].distance <= 0.5f)
+        {
+            //left
+            if (tpPoint.x < rcC.rayCastHits[3].point.x + 0.5f)
+            {
+                tpPoint.x = rcC.rayCastHits[3].point.x + 0.5f;
+            }
+        }
+        //when teleportPoint is in a wall
+        //RaycastHit2D wallCollisionCheck = Physics2D.Raycast(transform.position, moveDirection, Vector2.Distance(transform.position, teleportPoint), 1 << 8);
+        //Debug.Log(wallCollisionCheck.collider);
+        //if (wallCollisionCheck.collider != null)
+        //{
+        //    float deltaY = transform.position.y - wallCollisionCheck.point.y;
+        //    float deltaX = transform.position.x - wallCollisionCheck.point.x;
+
+        //    float tangentPointOffset = (0.5f * deltaX)/deltaY;
+
+        //    if(deltaX < deltaY)
+        //    {
+        //        tpPoint = wallCollisionCheck.point + wallCollisionCheck.normal * 0.5f + Vector2.Perpendicular(wallCollisionCheck.normal) * -tangentPointOffset;
+        //    }
+        //    else
+        //    {
+        //        tpPoint = wallCollisionCheck.point + wallCollisionCheck.normal * 0.5f + Vector2.Perpendicular(wallCollisionCheck.normal) * -tangentPointOffset;
+        //    }
+        //}
+        //else
+        //{
+        //    tpPoint = teleportPoint;
+        //}
     }
 
     private void Teleport()
     {
         transform.position = teleportTargetGraphic.transform.position;
         playerRigidbody2D.velocity = Vector2.zero;
-        teleportTargetGraphic.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+        //teleportTargetGraphic.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
+        justTP = true;
+        StartCoroutine(JustTPCooldown());
 
         teleportCells--;
 
@@ -200,5 +290,11 @@ public class PlayerBehaviour : MonoBehaviour
     private void Death()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    private IEnumerator JustTPCooldown()
+    {
+        yield return new WaitForSeconds(justTPTimer);
+        justTP = false;
     }
 }
