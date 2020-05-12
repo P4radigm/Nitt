@@ -56,8 +56,6 @@ public class BatBehaviour: MonoBehaviour
 
     private void OnTriggerEnter2D(Collider2D collision)
     {
-        
-
         PlayerBehaviour pB = collision.GetComponent<PlayerBehaviour>();
         if (pB != null)
         {

@@ -13,13 +13,17 @@ public class PlayerBehaviour : MonoBehaviour
     [Header("Game Feel")]
     [SerializeField] private float timeSlow = 0.5f;
 
-    [Header("PlayerStats")]
+    [Header("Player Stats")]
     public int hitPoints;
     public int teleportCells;
+    public float tpDamageOutput;
+    public float contactDamageOutput;
 
-    [Header("PlayerStatsTweaks")]
+    [Header("Player Start Stats")]
     [SerializeField] int maxHitPoints;
     [SerializeField] int maxTeleportCells;
+    [SerializeField] float initialTpDamageOutput;
+    [SerializeField] float inititalcontactDamageOutput;
 
     [Header("Needed")]
     [SerializeField] private GameObject teleportTargetGraphic = null;
