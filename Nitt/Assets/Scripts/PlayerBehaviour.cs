@@ -64,10 +64,15 @@ public class PlayerBehaviour : MonoBehaviour
     {
         Input.simulateMouseWithTouches = true;
         playerRigidbody2D = GetComponent<Rigidbody2D>();
+
         hitPoints = maxHitPoints;
         teleportCells = maxTeleportCells;
+        tpDamageOutput = initialTpDamageOutput;
+        contactDamageOutput = inititalcontactDamageOutput;
+
         healthSlider.maxValue = maxHitPoints;
         teleportSlider.maxValue = maxTeleportCells;
+
     }
 
     // Update is called once per frame

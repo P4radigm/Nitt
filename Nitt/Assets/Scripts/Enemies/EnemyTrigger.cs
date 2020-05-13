@@ -27,23 +27,17 @@ public class EnemyTrigger : MonoBehaviour
     {
 
         PlayerBehaviour pB = collision.gameObject.GetComponent<PlayerBehaviour>();
-        float playerTpDamageOutput = 0;
-        float playerContactDamageOutput = 0;
-        float projectedHP = HP;
 
         if (pB != null)
         {
-            playerTpDamageOutput = pB.tpDamageOutput;
-            playerContactDamageOutput = pB.contactDamageOutput;
-            projectedHP = HP - playerTpDamageOutput;
-        }
+            float playerTpDamageOutput = pB.tpDamageOutput;
+            float playerContactDamageOutput = pB.contactDamageOutput;
+            float totalContactDamage = initialContactDamage + playerContactDamageOutput;
 
-        float totalContactDamage = initialContactDamage + playerContactDamageOutput;
-
-        if (pB != null)
-        {
             if (pB.justTP == true)
             {
+                float projectedHP = HP - playerTpDamageOutput;
+
                 if (projectedHP > 0)
                 {
                     HP = projectedHP;
@@ -60,10 +54,11 @@ public class EnemyTrigger : MonoBehaviour
 
                 if (takesContactDamage)
                 {
-                    float pHP = HP - totalContactDamage;
-                    if (pHP > 0)
+                    float projectedHP = HP - totalContactDamage;
+
+                    if (projectedHP > 0)
                     {
-                        HP = pHP;
+                        HP = projectedHP;
                     }
                     else
                     {
