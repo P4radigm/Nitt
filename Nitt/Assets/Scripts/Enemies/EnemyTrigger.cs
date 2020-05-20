@@ -16,6 +16,7 @@ public class EnemyTrigger : MonoBehaviour
 
     private float noPlayerHitCooldownTime = 0;
     private float HP;
+    private GameManager gm = GameManager.instance;
 
     // Start is called before the first frame update
     void Start()
@@ -26,7 +27,7 @@ public class EnemyTrigger : MonoBehaviour
     private void OnTriggerEnter2D(Collider2D collision)
     {
 
-        PlayerBehaviour pB = collision.gameObject.GetComponent<PlayerBehaviour>();
+        PlayerBehaviour2 pB = collision.gameObject.GetComponent<PlayerBehaviour2>();
 
         if (pB != null)
         {

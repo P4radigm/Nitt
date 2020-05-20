@@ -109,26 +109,14 @@ public class PlayerBehaviour : MonoBehaviour
                 edgeTPNeeded = false;
                 Debug.Log(lastShortestDistance);
                 teleportTargetGraphic.transform.position = ttgRayCastCheck.rayCastHits[lastDistIndex].point + ttgRayCastCheck.rayCastHits[lastDistIndex].normal*0.5f;
-                //nothing
-                //lastShortestDistance = ttgRayCastCheck.distances[ttgRayCastCheck.distIndex];
-                //lastDistIndex = ttgRayCastCheck.distIndex;
             }
             else if(ttRayCastCheck.distances[ttRayCastCheck.distIndex] >= 0)
             {
-                //Debug.Log(lastShortestDistance);
-                //teleportTargetTarget.transform.position = teleportPoint;
-
-                //teleportTarget.GetComponent<SpringJoint2D>().enabled = true;
-
                 teleportTargetGraphic.transform.position = tpPoint;
 
                 edgeTPNeeded = true;
                 lastShortestDistance = ttgRayCastCheck.distances[ttgRayCastCheck.distIndex];
                 lastDistIndex = ttgRayCastCheck.distIndex;
-
-                //teleportTargetGraphic.GetComponent<Rigidbody2D>().velocity = Vector2.zero;
-                //Vector2 speed = (teleportPoint - new Vector2(teleportTargetGraphic.transform.position.x, teleportTargetGraphic.transform.position.y)) * speedMod * Time.deltaTime;
-                //teleportTargetGraphic.GetComponent<Rigidbody2D>().velocity = speed;
             }
             else
             {
@@ -216,7 +204,9 @@ public class PlayerBehaviour : MonoBehaviour
 
         RayCastCheck rcC = teleportTargetGraphic.GetComponent<RayCastCheck>();
 
-        if(rcC.rayCastHits[0].distance <= 0.5f || rcC.rayCastHitsC[0].distance <= 0.5f || rcC.rayCastHitsC[1].distance <= 0.5f)
+        #region CollisionCheck
+
+        if (rcC.rayCastHits[0].distance <= 0.5f && rcC.rayCastHitsC[0].distance > 0.5f && rcC.rayCastHitsC[1].distance > 0.5f)
         {
             //up
             if (tpPoint.y > rcC.rayCastHits[0].point.y - 0.5f)
@@ -225,7 +215,7 @@ public class PlayerBehaviour : MonoBehaviour
             }
         }
 
-        if (rcC.rayCastHits[1].distance <= 0.5f || rcC.rayCastHitsC[2].distance <= 0.5f || rcC.rayCastHitsC[3].distance <= 0.5f)
+        if (rcC.rayCastHits[1].distance <= 0.5f && rcC.rayCastHitsC[2].distance > 0.5f && rcC.rayCastHitsC[3].distance > 0.5f)
         {
             //right
             if (tpPoint.x > rcC.rayCastHits[1].point.x - 0.5f)
@@ -234,7 +224,7 @@ public class PlayerBehaviour : MonoBehaviour
             }
         }
 
-        if (rcC.rayCastHits[2].distance <= 0.5f || rcC.rayCastHitsC[4].distance <= 0.5f || rcC.rayCastHitsC[5].distance <= 0.5f)
+        if (rcC.rayCastHits[2].distance <= 0.5f && rcC.rayCastHitsC[4].distance > 0.5f && rcC.rayCastHitsC[5].distance > 0.5f)
         {
             //down
             if (tpPoint.y < rcC.rayCastHits[2].point.y + 0.5f)
@@ -243,7 +233,7 @@ public class PlayerBehaviour : MonoBehaviour
             }
         }
 
-        if (rcC.rayCastHits[3].distance <= 0.5f || rcC.rayCastHitsC[6].distance <= 0.5f || rcC.rayCastHitsC[7].distance <= 0.5f)
+        if (rcC.rayCastHits[3].distance <= 0.5f && rcC.rayCastHitsC[6].distance > 0.5f && rcC.rayCastHitsC[7].distance > 0.5f)
         {
             //left
             if (tpPoint.x < rcC.rayCastHits[3].point.x + 0.5f)
@@ -251,6 +241,82 @@ public class PlayerBehaviour : MonoBehaviour
                 tpPoint.x = rcC.rayCastHits[3].point.x + 0.5f;
             }
         }
+
+        if (rcC.rayCastHitsC[0].distance <= 0.5f && rcC.rayCastHits[0].distance > 0.5f && rcC.rayCastHitsC[1].distance > 0.5f)
+        {
+            //up
+            if (tpPoint.x < rcC.rayCastHitsC[0].point.y - 0.5f)
+            {
+                tpPoint.x = rcC.rayCastHitsC[0].point.y - 0.5f;
+            }
+        }
+
+        if (rcC.rayCastHitsC[1].distance <= 0.5f && rcC.rayCastHits[0].distance > 0.5f && rcC.rayCastHitsC[0].distance > 0.5f)
+        {
+            //up
+            if (tpPoint.x < rcC.rayCastHitsC[1].point.y - 0.5f)
+            {
+                tpPoint.x = rcC.rayCastHitsC[1].point.y - 0.5f;
+            }
+        }
+
+        if (rcC.rayCastHitsC[2].distance <= 0.5f && rcC.rayCastHits[1].distance > 0.5f && rcC.rayCastHitsC[3].distance > 0.5f)
+        {
+            //right
+            if (tpPoint.x > rcC.rayCastHitsC[2].point.x - 0.5f)
+            {
+                tpPoint.x = rcC.rayCastHitsC[2].point.x - 0.5f;
+            }
+        }
+
+        if (rcC.rayCastHitsC[3].distance <= 0.5f && rcC.rayCastHits[1].distance > 0.5f && rcC.rayCastHitsC[2].distance > 0.5f)
+        {
+            //right
+            if (tpPoint.x > rcC.rayCastHitsC[3].point.x - 0.5f)
+            {
+                tpPoint.x = rcC.rayCastHitsC[3].point.x - 0.5f;
+            }
+        }
+
+        if (rcC.rayCastHitsC[4].distance <= 0.5f && rcC.rayCastHits[2].distance > 0.5f && rcC.rayCastHitsC[5].distance > 0.5f)
+        {
+            //down
+            if (tpPoint.y < rcC.rayCastHitsC[4].point.y + 0.5f)
+            {
+                tpPoint.y = rcC.rayCastHitsC[4].point.y + 0.5f;
+            }
+        }
+
+        if (rcC.rayCastHitsC[5].distance <= 0.5f && rcC.rayCastHits[2].distance > 0.5f && rcC.rayCastHitsC[4].distance > 0.5f)
+        {
+            //down
+            if (tpPoint.y < rcC.rayCastHitsC[5].point.y + 0.5f)
+            {
+                tpPoint.y = rcC.rayCastHitsC[5].point.y + 0.5f;
+            }
+        }
+
+        if (rcC.rayCastHitsC[6].distance <= 0.5f && rcC.rayCastHits[3].distance > 0.5f && rcC.rayCastHitsC[7].distance > 0.5f)
+        {
+            //left
+            if (tpPoint.x < rcC.rayCastHitsC[6].point.x + 0.5f)
+            {
+                tpPoint.x = rcC.rayCastHitsC[6].point.x + 0.5f;
+            }
+        }
+
+        if (rcC.rayCastHitsC[7].distance <= 0.5f && rcC.rayCastHits[3].distance > 0.5f && rcC.rayCastHitsC[6].distance > 0.5f)
+        {
+            //left
+            if (tpPoint.x < rcC.rayCastHitsC[7].point.x + 0.5f)
+            {
+                tpPoint.x = rcC.rayCastHitsC[7].point.x + 0.5f;
+            }
+        }
+
+        #endregion
+
+        #region OldCalc
         //when teleportPoint is in a wall
         //RaycastHit2D wallCollisionCheck = Physics2D.Raycast(transform.position, moveDirection, Vector2.Distance(transform.position, teleportPoint), 1 << 8);
         //Debug.Log(wallCollisionCheck.collider);
@@ -274,6 +340,7 @@ public class PlayerBehaviour : MonoBehaviour
         //{
         //    tpPoint = teleportPoint;
         //}
+        #endregion
     }
 
     private void Teleport()
