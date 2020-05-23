@@ -47,6 +47,7 @@ public class PlayerBehaviour2 : MonoBehaviour
     [HideInInspector] public bool justTP = false;
     private float moveDirectionDistance = 0;
     float moveDirectionAngle = 0;
+    private GameManager gm;
 
     private Rigidbody2D playerRigidbody2D;
 
@@ -61,6 +62,8 @@ public class PlayerBehaviour2 : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        gm = GameManager.instance;
+
         Input.simulateMouseWithTouches = true;
         playerRigidbody2D = GetComponent<Rigidbody2D>();
         hitPoints = maxHitPoints;
@@ -196,7 +199,10 @@ public class PlayerBehaviour2 : MonoBehaviour
         justTP = true;
         StartCoroutine(JustTPCooldown());
 
-        teleportCells--;
+        if (!gm.activeRoom.GetComponent<RoomManager>().isCompleted)
+        {
+            teleportCells--;
+        }
 
         beginPhaseMouse = true;
     }
