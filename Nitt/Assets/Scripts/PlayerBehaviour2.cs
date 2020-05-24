@@ -126,9 +126,10 @@ public class PlayerBehaviour2 : MonoBehaviour
             }
 
             //GroundCheck
-            RaycastHit2D groundRay = Physics2D.Raycast(transform.position, Vector2.down, 0.6f);
-            if (groundRay.collider != null && groundRay.collider.tag == "Ground")
+            RaycastHit2D groundRay = Physics2D.Raycast(transform.position, Vector2.down, 0.6f, 1 << LayerMask.NameToLayer("Environment"));
+            if (groundRay.collider != null)
             {
+                //Debug.Log("new GroundPos = " + transform.position);
                 lastGroundPos = transform.position;
             }
             //graphics
@@ -156,6 +157,11 @@ public class PlayerBehaviour2 : MonoBehaviour
         {
             Death();
         }
+
+        if (gm.activeRoom.GetComponent<RoomManager>().isCompleted)
+        {
+            teleportCells = maxTeleportCells;
+        }
     }
 
     private void TimeSlow()
@@ -176,7 +182,7 @@ public class PlayerBehaviour2 : MonoBehaviour
         {
             beginPointPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             beginPhaseMouse = false;
-            //teleportTargetGraphic.transform.position = transform.position;
+            teleportTargetGraphic.transform.position = transform.position;
         }
 
         endPointPos = Camera.main.ScreenToWorldPoint(Input.mousePosition);

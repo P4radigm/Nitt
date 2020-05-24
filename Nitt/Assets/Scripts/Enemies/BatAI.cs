@@ -115,7 +115,7 @@ public class BatAI : MonoBehaviour
     {
         tpAttackInProgress = true;
         Collider2D col = GetComponent<Collider2D>();
-        col.isTrigger = true;
+        //col.isTrigger = true;
 
         //stop moving
         rb.drag = newDrag;

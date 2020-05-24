@@ -6,6 +6,7 @@ public class EnemyTrigger : MonoBehaviour
 {
     [Header("Object to Destroy")]
     [SerializeField] private GameObject parentObject;
+    [SerializeField] private ParticleSystem onDeathParticles;
 
     [Header("Collision Settings")]
     [SerializeField] private int cellRegenAmount;
@@ -46,7 +47,7 @@ public class EnemyTrigger : MonoBehaviour
                 else
                 {
                     pB.teleportCells += cellRegenAmount;
-                    Destroy(parentObject);
+                    gm.EnemyDeath(parentObject);
                 }
             }
             else
@@ -63,7 +64,7 @@ public class EnemyTrigger : MonoBehaviour
                     }
                     else
                     {
-                        Destroy(parentObject);
+                        gm.EnemyDeath(parentObject);
                     }
                 }
             }

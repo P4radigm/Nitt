@@ -21,10 +21,10 @@ public class RoomManager : MonoBehaviour
     }
 
     [Header("Entrance/Exits")]
-    [SerializeField] private GameObject topEntrance;
-    [SerializeField] private GameObject rightEntrance;
-    [SerializeField] private GameObject downEntrance;
-    [SerializeField] private GameObject leftEntrance;
+    public GameObject topEntrance;
+    public GameObject rightEntrance;
+    public GameObject downEntrance;
+    public GameObject leftEntrance;
 
     [Header("Enemy Spawn Options")]
     [SerializeField] private GameObject[] enemyPrefabs;
@@ -34,9 +34,12 @@ public class RoomManager : MonoBehaviour
 
     [Header("VFX")]
     [SerializeField] private ParticleSystem enemySpawnVFX;
+    [SerializeField] private ParticleSystem enemyAfterSpawnVFX;
 
     public bool isCompleted;
     public bool hasPlayer;
+    private PlayerBehaviour2 pB;
+    private Camera mainCamera;
 
     private bool spawnedEnemiesYet;
     private GameManager gm;
@@ -48,8 +51,20 @@ public class RoomManager : MonoBehaviour
     void Start()
     {
         gm = GameManager.instance;
+        pB = FindObjectOfType<PlayerBehaviour2>();
+        mainCamera = FindObjectOfType<Camera>();
+
+        topEntrance.SetActive(false);
+        rightEntrance.SetActive(false);
+        downEntrance.SetActive(false);
+        leftEntrance.SetActive(false);
 
         enemyShader = Shader.Find("NittShader/ColorCycle");
+
+        if(gm.spawnedRooms.Count == 0)
+        {
+            gm.spawnedRooms.Add(gameObject);
+        }
     }
 
     void Update()
@@ -67,9 +82,14 @@ public class RoomManager : MonoBehaviour
                 }
             }
 
-            if (spawnedEnemies.Count == 0)
+            if (spawnedEnemies.Count == 0 && spawnedEnemiesYet)
             {
                 isCompleted = true;
+
+                topEntrance.SetActive(true);
+                rightEntrance.SetActive(true);
+                downEntrance.SetActive(true);
+                leftEntrance.SetActive(true);
             }
         }
     }
@@ -81,13 +101,18 @@ public class RoomManager : MonoBehaviour
         {
 
             Vector3 vec3SpawnPoint = new Vector3(enemiesToBeSpawned[i].spawnTransform.position.x, enemiesToBeSpawned[i].spawnTransform.position.y, 0);
+            Quaternion spawnRot = enemiesToBeSpawned[i].spawnTransform.rotation;
 
             ParticleSystem spawnFX = Instantiate(enemySpawnVFX, vec3SpawnPoint, Quaternion.identity);
             spawnFX.Play(true);
 
             yield return new WaitForSeconds(secondsBetweenSpawns);
             Destroy(spawnFX);
-            GameObject Enemy = Instantiate(enemyPrefabs[(int)enemiesToBeSpawned[i].enemyType], vec3SpawnPoint, Quaternion.identity, transform);
+            GameObject Enemy = Instantiate(enemyPrefabs[(int)enemiesToBeSpawned[i].enemyType], vec3SpawnPoint, spawnRot, transform);
+
+            ParticleSystem afterSpawnFX = Instantiate(enemyAfterSpawnVFX, vec3SpawnPoint, Quaternion.identity);
+            afterSpawnFX.Play(true);
+            Destroy(afterSpawnFX, 0.3f);
 
             DisableEnemy(Enemy);
 
@@ -127,6 +152,166 @@ public class RoomManager : MonoBehaviour
             {
                 spawnedEnemies.RemoveAt(i);
             }
+        }
+    }
+
+    public void ChangeRoom(DoorBehaviour door)
+    {
+        if(door.doorLocation == DoorLocation.Top)
+        {
+            GameObject _newRoom = null;
+
+            //disable player script
+            pB.enabled = false;
+
+            //check if there's not already a room on top of this one
+            bool _roomAlreadyThere = false;
+
+            for (int i = 0; i < gm.spawnedRooms.Count; i++)
+            {
+                if(gm.spawnedRooms[i].transform.position == transform.position + new Vector3(0, 20, 0))
+                {
+                    _roomAlreadyThere = true;
+                    _newRoom = gm.spawnedRooms[i];
+                }
+            }
+
+            //spawn room on top of this one with a bottom door
+            if (!_roomAlreadyThere)
+            {
+                int randomRoomType = Random.Range(0, 8);
+                GameObject[] randomRoomTypeArray = gm.topRooms[randomRoomType];
+                int randomRoom = Random.Range(0, randomRoomTypeArray.Length);
+
+                _newRoom = Instantiate(randomRoomTypeArray[randomRoom], transform.position + new Vector3(0, 20, 0), Quaternion.identity);
+                gm.spawnedRooms.Add(_newRoom);
+            }
+
+            //update camera
+            mainCamera.transform.position += new Vector3(0, 20, 0);
+
+            //move player to bottom door of new room (with offset)
+            pB.transform.position = _newRoom.GetComponent<RoomManager>().downEntrance.transform.position + new Vector3(0, 0.5f, 0);
+
+            //enable player script
+            pB.enabled = true;
+        }
+        else if (door.doorLocation == DoorLocation.Right)
+        {
+            GameObject _newRoom = null;
+
+            //disable player script
+            pB.enabled = false;
+
+            //check if there's not already a room on top of this one
+            bool _roomAlreadyThere = false;
+
+            for (int i = 0; i < gm.spawnedRooms.Count; i++)
+            {
+                if (gm.spawnedRooms[i].transform.position == transform.position + new Vector3(13, 0, 0))
+                {
+                    _roomAlreadyThere = true;
+                    _newRoom = gm.spawnedRooms[i];
+                }
+            }
+
+            //spawn room on top of this one with a bottom door
+            if (!_roomAlreadyThere)
+            {
+                int randomRoomType = Random.Range(0, 8);
+                GameObject[] randomRoomTypeArray = gm.rightRooms[randomRoomType];
+                int randomRoom = Random.Range(0, randomRoomTypeArray.Length);
+
+                _newRoom = Instantiate(randomRoomTypeArray[randomRoom], transform.position + new Vector3(13, 0, 0), Quaternion.identity);
+                gm.spawnedRooms.Add(_newRoom);
+            }
+
+            //update camera
+            mainCamera.transform.position += new Vector3(13, 0, 0);
+
+            //move player to bottom door of new room (with offset)
+            pB.transform.position = _newRoom.GetComponent<RoomManager>().leftEntrance.transform.position + new Vector3(0.5f, 0, 0);
+
+            //enable player script
+            pB.enabled = true;
+        }
+        else if (door.doorLocation == DoorLocation.Bottom)
+        {
+            GameObject _newRoom = null;
+
+            //disable player script
+            pB.enabled = false;
+
+            //check if there's not already a room on top of this one
+            bool _roomAlreadyThere = false;
+
+            for (int i = 0; i < gm.spawnedRooms.Count; i++)
+            {
+                if (gm.spawnedRooms[i].transform.position == transform.position + new Vector3(0, -20, 0))
+                {
+                    _roomAlreadyThere = true;
+                    _newRoom = gm.spawnedRooms[i];
+                }
+            }
+
+            //spawn room on top of this one with a bottom door
+            if (!_roomAlreadyThere)
+            {
+                int randomRoomType = Random.Range(0, 8);
+                GameObject[] randomRoomTypeArray = gm.bottomRooms[randomRoomType];
+                int randomRoom = Random.Range(0, randomRoomTypeArray.Length);
+
+                _newRoom = Instantiate(randomRoomTypeArray[randomRoom], transform.position + new Vector3(0, -20, 0), Quaternion.identity);
+                gm.spawnedRooms.Add(_newRoom);
+            }
+
+            //update camera
+            mainCamera.transform.position += new Vector3(0, -20, 0);
+
+            //move player to bottom door of new room (with offset)
+            pB.transform.position = _newRoom.GetComponent<RoomManager>().topEntrance.transform.position + new Vector3(0, -0.5f, 0);
+
+            //enable player script
+            pB.enabled = true;
+        }
+        else if (door.doorLocation == DoorLocation.Left)
+        {
+            GameObject _newRoom = null;
+
+            //disable player script
+            pB.enabled = false;
+
+            //check if there's not already a room on top of this one
+            bool _roomAlreadyThere = false;
+
+            for (int i = 0; i < gm.spawnedRooms.Count; i++)
+            {
+                if (gm.spawnedRooms[i].transform.position == transform.position + new Vector3(-13, 0, 0))
+                {
+                    _roomAlreadyThere = true;
+                    _newRoom = gm.spawnedRooms[i];
+                }
+            }
+
+            //spawn room on top of this one with a bottom door
+            if (!_roomAlreadyThere)
+            {
+                int randomRoomType = Random.Range(0, 8);
+                GameObject[] randomRoomTypeArray = gm.leftRooms[randomRoomType];
+                int randomRoom = Random.Range(0, randomRoomTypeArray.Length);
+
+                _newRoom = Instantiate(randomRoomTypeArray[randomRoom], transform.position + new Vector3(-13, 0, 0), Quaternion.identity);
+                gm.spawnedRooms.Add(_newRoom);
+            }
+
+            //update camera
+            mainCamera.transform.position += new Vector3(-13, 0, 0);
+
+            //move player to bottom door of new room (with offset)
+            pB.transform.position = _newRoom.GetComponent<RoomManager>().rightEntrance.transform.position + new Vector3(-0.5f, 0, 0);
+
+            //enable player script
+            pB.enabled = true;
         }
     }
 
