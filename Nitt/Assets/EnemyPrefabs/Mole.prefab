@@ -96,6 +96,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parentObject: {fileID: 168772940785571326}
+  onDeathParticles: {fileID: 0}
   cellRegenAmount: 0
   damageAmount: 1
   initialHP: 1
@@ -142,7 +143,7 @@ GameObject:
   - component: {fileID: 168772940785571313}
   - component: {fileID: 168772940785571314}
   - component: {fileID: 168772940785571312}
-  m_Layer: 11
+  m_Layer: 14
   m_Name: Mole
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -177,10 +178,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   speed: 2
-  startShootCooldown: 0
-  shootyBoi: 0
-  needlePrefab: {fileID: 0}
-  instantiateOffset: 0
+  startShootCooldown: 4
+  shootyBoi: 1
+  needlePrefab: {fileID: 9203330431960456823, guid: edc4b05d36eb9744aa06db6c7c5ce84a,
+    type: 3}
+  instantiateOffset: 0.5
 --- !u!50 &168772940785571314
 Rigidbody2D:
   serializedVersion: 4

@@ -15,6 +15,8 @@ public class EnemyTrigger : MonoBehaviour
     [SerializeField] private bool takesContactDamage;
     [SerializeField] private float initialContactDamage;
 
+    [HideInInspector] public bool active = true;
+
     private float noPlayerHitCooldownTime = 0;
     private float HP;
     private GameManager gm = GameManager.instance;
@@ -22,6 +24,7 @@ public class EnemyTrigger : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        active = true;
         HP = initialHP;
     }
 
@@ -30,7 +33,7 @@ public class EnemyTrigger : MonoBehaviour
 
         PlayerBehaviour2 pB = collision.gameObject.GetComponent<PlayerBehaviour2>();
 
-        if (pB != null)
+        if (pB != null && active)
         {
             float playerTpDamageOutput = pB.tpDamageOutput;
             float playerContactDamageOutput = pB.contactDamageOutput;
@@ -46,7 +49,7 @@ public class EnemyTrigger : MonoBehaviour
                 }
                 else
                 {
-                    pB.teleportCells += cellRegenAmount;
+                    pB.teleportJuice += cellRegenAmount;
                     gm.EnemyDeath(parentObject);
                 }
             }

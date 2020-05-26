@@ -18,6 +18,7 @@ public class MoleAI : MonoBehaviour
     void Start()
     {
         shootCooldown = startShootCooldown;
+        shootCooldown = Random.Range(1, startShootCooldown);
 
         int startDir = Random.Range(0, 4);
         if(startDir == 0)

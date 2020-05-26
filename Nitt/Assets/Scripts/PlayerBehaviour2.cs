@@ -6,37 +6,51 @@ using UnityEngine.UI;
 public class PlayerBehaviour2 : MonoBehaviour
 {
     [Header("Teleport tweaks")]
-    [SerializeField] private float maxTeleportDistance = 1;
-    [SerializeField] private float distanceThreshold = 0.1f;
     [SerializeField] private float justTPTimer = 0.1f;
+    [SerializeField] private float TPRegenCooldown = 2f;
 
     [Header("Game Feel")]
     [SerializeField] private float timeSlow = 0.5f;
 
     [Header("Player Stats")]
     public int hitPoints;
-    public int teleportCells;
+    public float teleportJuice;
     public float tpDamageOutput;
     public float contactDamageOutput;
     public int currency;
+    public float teleportJuiceRegenMultiplier;
+    public float teleportJuiceDrainMultiplier;
+    public float teleportRange;
 
     [Header("Player Stats Tweaks")]
-    [SerializeField] int maxHitPoints;
-    [SerializeField] int maxTeleportCells;
-    [SerializeField] float initialTpDamageOutput;
-    [SerializeField] float inititalcontactDamageOutput;
-    [SerializeField] int startCurrency;
+    [SerializeField] private int maxHitPoints;
+    [SerializeField] private float maxTeleportJuice;
+    [SerializeField] private float startTeleportJuiceRegenMultiplier;
+    [SerializeField] private float startTeleportJuiceDrainMultiplier;
+    [SerializeField] private float minTeleportJuiceForTP;
+    [SerializeField] private float initialTpDamageOutput;
+    [SerializeField] private float startTeleportRange;
+    [SerializeField] private float inititalContactDamageOutput;
+    [SerializeField] private int startCurrency;
 
     [Header("Needed")]
     [SerializeField] private GameObject teleportTargetGraphic = null;
     [SerializeField] private GameObject teleportTarget = null;
+    [SerializeField] private SpriteRenderer brightnessFilter;
+    [SerializeField] private SpriteMask playerCircleMask;
     [SerializeField] private Slider healthSlider;
     [SerializeField] private Slider teleportSlider;
+    [SerializeField] private ParticleSystem regenParticles;
+    [SerializeField] private ParticleSystem drainParticles;
+    [SerializeField] private ParticleSystem TpParticles;
 
     private SpriteRenderer[] spR;
     private float fixedDeltaTime;
     private bool notTeleported = false;
     private bool beginPhaseMouse = true;
+    private bool particlesAllowed = false;
+    private bool regenAllowed = false;
+    //private float timeBtwTCRegenCounter;
 
     //Teleport Point Calculation
     private Vector2 teleportPoint = Vector2.zero;
@@ -46,7 +60,6 @@ public class PlayerBehaviour2 : MonoBehaviour
     [HideInInspector] public Vector2 lastGroundPos = Vector2.zero;
     [HideInInspector] public bool justTP = false;
     private float moveDirectionDistance = 0;
-    float moveDirectionAngle = 0;
     private GameManager gm;
 
     private Rigidbody2D playerRigidbody2D;
@@ -67,13 +80,19 @@ public class PlayerBehaviour2 : MonoBehaviour
         Input.simulateMouseWithTouches = true;
         playerRigidbody2D = GetComponent<Rigidbody2D>();
         hitPoints = maxHitPoints;
-        teleportCells = maxTeleportCells;
+        teleportJuice = maxTeleportJuice;
         tpDamageOutput = initialTpDamageOutput;
-        contactDamageOutput = inititalcontactDamageOutput;
+        contactDamageOutput = inititalContactDamageOutput;
         currency = startCurrency;
+        teleportJuiceRegenMultiplier = startTeleportJuiceRegenMultiplier;
+        teleportJuiceDrainMultiplier = startTeleportJuiceDrainMultiplier;
+        teleportRange = startTeleportRange;
 
         healthSlider.maxValue = maxHitPoints;
-        teleportSlider.maxValue = maxTeleportCells;
+        teleportSlider.maxValue = maxTeleportJuice;
+
+        playerCircleMask.transform.localScale = new Vector3(teleportRange*2, teleportRange*2, teleportRange*2);
+        brightnessFilter.enabled = false;
 
         spR = teleportTargetGraphic.GetComponentsInChildren<SpriteRenderer>();
     }
@@ -84,14 +103,19 @@ public class PlayerBehaviour2 : MonoBehaviour
         //Debug.Log(Camera.main.ScreenToWorldPoint(Input.mousePosition));
 
         //Player Input
-        if (Input.GetMouseButton(0) && teleportCells > 0)
+        if (Input.GetMouseButton(0) && teleportJuice > minTeleportJuiceForTP)
         {
             TimeSlow();
             CalcTargetPos();
+            if (!gm.activeRoom.GetComponent<RoomManager>().isCompleted) 
+            { 
+                TPJuiceDrain(); 
+            }
 
             notTeleported = true;
 
             //graphics
+            brightnessFilter.enabled = true;
             for (int i = 0; i < spR.Length; i++)
             {
                 spR[i].enabled = true;
@@ -117,13 +141,36 @@ public class PlayerBehaviour2 : MonoBehaviour
         }
         else
         {
+            //TP
             if (notTeleported)
             {
+                //Particles
+                ParticleSystem tpP = Instantiate(TpParticles, transform.position, Quaternion.identity);
+                tpP.Play();
+                Destroy(tpP.gameObject, 0.6f);
+
                 TimeContinue();
                 Teleport();
+                StartCoroutine(RegenCooldown());
 
                 notTeleported = false;
             }
+
+            //TC regen
+            if(teleportJuice < maxTeleportJuice)
+            {
+                TPJuiceRegen();
+            }
+
+            //if (timeBtwTCRegenCounter <= 0)
+            //{
+            //    teleportCells++;
+            //    timeBtwTCRegenCounter = timeBtwTCRegen;
+            //}
+            //else if(teleportCells != maxTeleportCells)
+            //{
+            //    timeBtwTCRegenCounter -= Time.deltaTime;
+            //}
 
             //GroundCheck
             RaycastHit2D groundRay = Physics2D.Raycast(transform.position, Vector2.down, 0.6f, 1 << LayerMask.NameToLayer("Environment"));
@@ -132,35 +179,44 @@ public class PlayerBehaviour2 : MonoBehaviour
                 //Debug.Log("new GroundPos = " + transform.position);
                 lastGroundPos = transform.position;
             }
+
             //graphics
+            brightnessFilter.enabled = false;
             for (int i = 0; i < spR.Length; i++)
             {
                 spR[i].enabled = false;
             }
+
             //teleportTargetGraphic.SetActive(false);
         }
 
+        //HP cap
         if (hitPoints > maxHitPoints)
         {
             hitPoints = maxHitPoints;
         }
 
-        if (teleportCells > maxTeleportCells)
-        {
-            teleportCells = maxTeleportCells;
-        }
+        //TC cap
+        //if (teleportCells > maxTeleportCells)
+        //{
+        //    teleportCells = maxTeleportCells;
+        //}
 
+        //update UI
         healthSlider.value = hitPoints;
-        teleportSlider.value = teleportCells;
+        teleportSlider.value = teleportJuice;
 
+        //Death check
         if (hitPoints == 0)
         {
             Death();
         }
 
+        //max out TC when room is completed
         if (gm.activeRoom.GetComponent<RoomManager>().isCompleted)
         {
-            teleportCells = maxTeleportCells;
+            teleportJuice = maxTeleportJuice;
+            //timeBtwTCRegenCounter = timeBtwTCRegen;
         }
     }
 
@@ -189,9 +245,9 @@ public class PlayerBehaviour2 : MonoBehaviour
 
         moveDirection = endPointPos - beginPointPos;
         moveDirection.Normalize();
-        moveDirectionAngle = Mathf.Atan2(moveDirection.x, moveDirection.y) * Mathf.Rad2Deg;
+        //moveDirectionAngle = Mathf.Atan2(moveDirection.x, moveDirection.y) * Mathf.Rad2Deg;
 
-        moveDirectionDistance = Mathf.Clamp(Vector2.Distance(endPointPos, beginPointPos), 0f, maxTeleportDistance);
+        moveDirectionDistance = Mathf.Clamp(Vector2.Distance(endPointPos, beginPointPos), 0f, teleportRange);
 
         teleportPoint = new Vector2(transform.position.x, transform.position.y) + (moveDirection * moveDirectionDistance);
     }
@@ -205,12 +261,69 @@ public class PlayerBehaviour2 : MonoBehaviour
         justTP = true;
         StartCoroutine(JustTPCooldown());
 
-        if (!gm.activeRoom.GetComponent<RoomManager>().isCompleted)
-        {
-            teleportCells--;
-        }
+        //if (!gm.activeRoom.GetComponent<RoomManager>().isCompleted)
+        //{
+        //    teleportCells--;
+        //}
 
         beginPhaseMouse = true;
+    }
+
+    private void TPJuiceDrain()
+    {
+        teleportJuice -= Time.deltaTime * teleportJuiceDrainMultiplier;
+        if (!drainParticles.isPlaying)
+        {
+            drainParticles.gameObject.SetActive(true);
+            drainParticles.Play();
+        }
+
+        if (!regenParticles.isStopped)
+        {
+            regenParticles.gameObject.SetActive(false);
+            regenParticles.Stop();
+            ParticleSystem _System;
+            _System = regenParticles;
+            ParticleSystem.Particle[] _Particles;
+            _Particles = new ParticleSystem.Particle[_System.main.maxParticles];
+
+            for (int i = 0; i < _Particles.Length; i++)
+            {
+                _Particles[i].velocity = Vector3.zero;
+            }
+        }
+
+        particlesAllowed = false;
+        regenAllowed = false;
+    }
+
+    private void TPJuiceRegen()
+    {
+        if (regenAllowed)
+        {
+            teleportJuice += Time.deltaTime * teleportJuiceRegenMultiplier;
+        }
+
+        if (!regenParticles.isPlaying && particlesAllowed == true)
+        {
+            regenParticles.gameObject.SetActive(true);
+            //Debug.Log("Ayy1");
+            regenParticles.Play();
+        }
+
+        if (!drainParticles.isStopped)
+        {
+            drainParticles.Stop();
+            ParticleSystem _System;
+            _System = drainParticles;
+            ParticleSystem.Particle[] _Particles;
+            _Particles = new ParticleSystem.Particle[_System.main.maxParticles];
+
+            for (int i = 0; i < _Particles.Length; i++)
+            {
+                _Particles[i].velocity = Vector3.zero;
+            }
+        }
     }
 
     public void EnvironmentDamage()
@@ -229,5 +342,15 @@ public class PlayerBehaviour2 : MonoBehaviour
     {
         yield return new WaitForSeconds(justTPTimer);
         justTP = false;
+    }
+
+    private IEnumerator RegenCooldown()
+    {
+        yield return new WaitForSeconds(TPRegenCooldown - 1.3f);
+        particlesAllowed = true;
+        //Debug.Log("Ayy1");
+        yield return new WaitForSeconds(1.3f);
+        //Debug.Log("Ayy2");
+        regenAllowed = true;
     }
 }

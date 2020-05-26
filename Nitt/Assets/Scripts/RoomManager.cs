@@ -29,7 +29,8 @@ public class RoomManager : MonoBehaviour
     [Header("Enemy Spawn Options")]
     [SerializeField] private GameObject[] enemyPrefabs;
     [SerializeField] private EnemyToBeSpawned[] enemiesToBeSpawned;
-    [SerializeField] private float secondsBetweenSpawns;
+    [SerializeField] private float totalSpawnTime;
+    [SerializeField] private float lastPauzeTime;
     private List<GameObject> spawnedEnemies = new List<GameObject>();
 
     [Header("VFX")]
@@ -104,10 +105,12 @@ public class RoomManager : MonoBehaviour
             Quaternion spawnRot = enemiesToBeSpawned[i].spawnTransform.rotation;
 
             ParticleSystem spawnFX = Instantiate(enemySpawnVFX, vec3SpawnPoint, Quaternion.identity);
+            var spawnFXMain = spawnFX.main;
+            spawnFXMain.simulationSpeed = totalSpawnTime / enemiesToBeSpawned.Length;
             spawnFX.Play(true);
 
-            yield return new WaitForSeconds(secondsBetweenSpawns);
-            Destroy(spawnFX);
+            yield return new WaitForSeconds(totalSpawnTime / enemiesToBeSpawned.Length);
+            Destroy(spawnFX.gameObject);
             GameObject Enemy = Instantiate(enemyPrefabs[(int)enemiesToBeSpawned[i].enemyType], vec3SpawnPoint, spawnRot, transform);
 
             ParticleSystem afterSpawnFX = Instantiate(enemyAfterSpawnVFX, vec3SpawnPoint, Quaternion.identity);
@@ -132,7 +135,7 @@ public class RoomManager : MonoBehaviour
             spawnedEnemies.Add(Enemy);
         }
 
-        yield return new WaitForSeconds(secondsBetweenSpawns);
+        yield return new WaitForSeconds(lastPauzeTime);
 
         for (int i = 0; i < spawnedEnemies.Count; i++)
         {
@@ -173,6 +176,7 @@ public class RoomManager : MonoBehaviour
                 {
                     _roomAlreadyThere = true;
                     _newRoom = gm.spawnedRooms[i];
+                    _newRoom.SetActive(true);
                 }
             }
 
@@ -212,6 +216,7 @@ public class RoomManager : MonoBehaviour
                 {
                     _roomAlreadyThere = true;
                     _newRoom = gm.spawnedRooms[i];
+                    _newRoom.SetActive(true);
                 }
             }
 
@@ -251,6 +256,7 @@ public class RoomManager : MonoBehaviour
                 {
                     _roomAlreadyThere = true;
                     _newRoom = gm.spawnedRooms[i];
+                    _newRoom.SetActive(true);
                 }
             }
 
@@ -290,6 +296,7 @@ public class RoomManager : MonoBehaviour
                 {
                     _roomAlreadyThere = true;
                     _newRoom = gm.spawnedRooms[i];
+                    _newRoom.SetActive(true);
                 }
             }
 
@@ -313,6 +320,8 @@ public class RoomManager : MonoBehaviour
             //enable player script
             pB.enabled = true;
         }
+
+        gameObject.SetActive(false);
     }
 
     private void OnTriggerEnter2D(Collider2D collision)
@@ -335,6 +344,15 @@ public class RoomManager : MonoBehaviour
 
     private void DisableEnemy(GameObject enemy)
     {
+        EnemyTrigger eT = enemy.GetComponentInChildren<EnemyTrigger>();
+        eT.active = false;
+
+        Collider2D[] enemyColliders = enemy.GetComponentsInChildren<Collider2D>();
+        for (int i = 0; i < enemyColliders.Length; i++)
+        {
+            enemyColliders[i].enabled = false;
+        }
+
         NeedleAI n = enemy.GetComponent<NeedleAI>();
         WaspAI w = enemy.GetComponent<WaspAI>();
         BatAI b = enemy.GetComponent<BatAI>();
@@ -369,6 +387,15 @@ public class RoomManager : MonoBehaviour
 
     private void EnableEnemy(GameObject enemy)
     {
+        EnemyTrigger eT = enemy.GetComponentInChildren<EnemyTrigger>();
+        eT.active = true;
+
+        Collider2D[] enemyColliders = enemy.GetComponentsInChildren<Collider2D>();
+        for (int i = 0; i < enemyColliders.Length; i++)
+        {
+            enemyColliders[i].enabled = true;
+        }
+
         NeedleAI n = enemy.GetComponent<NeedleAI>();
         WaspAI w = enemy.GetComponent<WaspAI>();
         BatAI b = enemy.GetComponent<BatAI>();

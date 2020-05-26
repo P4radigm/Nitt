@@ -124,6 +124,6 @@ public class GameManager : MonoBehaviour
 
         ParticleSystem onDeathFX = Instantiate(onEnemyDeathParticles, lastPos, lastRot);
         onDeathFX.Play(true);
-        Destroy(onDeathFX, 1f);
+        Destroy(onDeathFX.gameObject, 1f);
     }
 }
