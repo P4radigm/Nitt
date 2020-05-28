@@ -21,10 +21,10 @@ public class RoomManager : MonoBehaviour
     }
 
     [Header("Entrance/Exits")]
-    public GameObject topEntrance;
-    public GameObject rightEntrance;
-    public GameObject downEntrance;
-    public GameObject leftEntrance;
+    public GameObject topEntrance = null;
+    public GameObject rightEntrance = null;
+    public GameObject downEntrance = null;
+    public GameObject leftEntrance = null;
 
     [Header("Enemy Spawn Options")]
     [SerializeField] private GameObject[] enemyPrefabs;
@@ -55,10 +55,10 @@ public class RoomManager : MonoBehaviour
         pB = FindObjectOfType<PlayerBehaviour2>();
         mainCamera = FindObjectOfType<Camera>();
 
-        topEntrance.SetActive(false);
-        rightEntrance.SetActive(false);
-        downEntrance.SetActive(false);
-        leftEntrance.SetActive(false);
+        if (topEntrance != null) { topEntrance.SetActive(false); }
+        if (rightEntrance != null) { rightEntrance.SetActive(false); }
+        if (downEntrance != null) { downEntrance.SetActive(false); }
+        if (leftEntrance != null) { leftEntrance.SetActive(false); }
 
         enemyShader = Shader.Find("NittShader/ColorCycle");
 
@@ -87,10 +87,10 @@ public class RoomManager : MonoBehaviour
             {
                 isCompleted = true;
 
-                topEntrance.SetActive(true);
-                rightEntrance.SetActive(true);
-                downEntrance.SetActive(true);
-                leftEntrance.SetActive(true);
+                if (topEntrance != null) { topEntrance.SetActive(true); }
+                if (rightEntrance != null) { rightEntrance.SetActive(true); }
+                if (downEntrance != null) { downEntrance.SetActive(true); }
+                if (leftEntrance != null) { leftEntrance.SetActive(true); }
             }
         }
     }
@@ -115,7 +115,7 @@ public class RoomManager : MonoBehaviour
 
             ParticleSystem afterSpawnFX = Instantiate(enemyAfterSpawnVFX, vec3SpawnPoint, Quaternion.identity);
             afterSpawnFX.Play(true);
-            Destroy(afterSpawnFX, 0.3f);
+            Destroy(afterSpawnFX.gameObject, 0.3f);
 
             DisableEnemy(Enemy);
 

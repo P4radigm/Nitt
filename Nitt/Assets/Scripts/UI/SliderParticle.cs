@@ -25,8 +25,6 @@ public class SliderParticle : MonoBehaviour
         xEnd += xOffset;
 
         pS = GetComponent<ParticleSystem>();
-        sliderMaxValue = attachedSlider.maxValue;
-        sliderMinValue = attachedSlider.minValue;
         startY = transform.localPosition.y;
         startZ = transform.localPosition.z;
     }
@@ -34,6 +32,9 @@ public class SliderParticle : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        sliderMaxValue = attachedSlider.maxValue;
+        sliderMinValue = attachedSlider.minValue;
+
         //Pos update
         float _newXPos = xEnd - (attachedSlider.value / sliderMaxValue * (Mathf.Abs(xStart)+Mathf.Abs(xEnd)));
         Vector3 _newPos = new Vector3(_newXPos, startY, startZ);

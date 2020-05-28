@@ -3,18 +3,30 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
+
 public class PlayerBehaviour2 : MonoBehaviour
 {
     [Header("Teleport tweaks")]
     [SerializeField] private float justTPTimer = 0.1f;
     [SerializeField] private float TPRegenCooldown = 2f;
+    [SerializeField] private AnimationCurve tpAnimCurve;
+    [SerializeField] private float tpAnimDuration;
+    [SerializeField] private float minDistortionValue;
+    [SerializeField] private float maxDistortionValue;
+    [SerializeField] private float normalDistortionValue;
+    [SerializeField] private float ldOffset;
+
 
     [Header("Game Feel")]
     [SerializeField] private float timeSlow = 0.5f;
 
     [Header("Player Stats")]
     public int hitPoints;
+    public int maxHitPoints;
     public float teleportJuice;
+    public float maxTeleportJuice; 
     public float tpDamageOutput;
     public float contactDamageOutput;
     public int currency;
@@ -23,8 +35,8 @@ public class PlayerBehaviour2 : MonoBehaviour
     public float teleportRange;
 
     [Header("Player Stats Tweaks")]
-    [SerializeField] private int maxHitPoints;
-    [SerializeField] private float maxTeleportJuice;
+    [SerializeField] private int startMaxHitPoints;
+    [SerializeField] private float startMaxTeleportJuice;
     [SerializeField] private float startTeleportJuiceRegenMultiplier;
     [SerializeField] private float startTeleportJuiceDrainMultiplier;
     [SerializeField] private float minTeleportJuiceForTP;
@@ -50,6 +62,11 @@ public class PlayerBehaviour2 : MonoBehaviour
     private bool beginPhaseMouse = true;
     private bool particlesAllowed = false;
     private bool regenAllowed = false;
+    private VolumeProfile v;
+    private LensDistortion ld;
+    private Vignette vg;
+    private ChromaticAberration cha;
+    private Coroutine PostProcessingEffectsOffRoutine;
     //private float timeBtwTCRegenCounter;
 
     //Teleport Point Calculation
@@ -76,9 +93,11 @@ public class PlayerBehaviour2 : MonoBehaviour
     void Start()
     {
         gm = GameManager.instance;
-
         Input.simulateMouseWithTouches = true;
         playerRigidbody2D = GetComponent<Rigidbody2D>();
+
+        maxTeleportJuice = startMaxTeleportJuice;
+        maxHitPoints = startMaxHitPoints;
         hitPoints = maxHitPoints;
         teleportJuice = maxTeleportJuice;
         tpDamageOutput = initialTpDamageOutput;
@@ -91,14 +110,19 @@ public class PlayerBehaviour2 : MonoBehaviour
         healthSlider.maxValue = maxHitPoints;
         teleportSlider.maxValue = maxTeleportJuice;
 
-        playerCircleMask.transform.localScale = new Vector3(teleportRange*2, teleportRange*2, teleportRange*2);
+        playerCircleMask.transform.localScale = new Vector3(teleportRange * 2, teleportRange * 2, teleportRange * 2);
         brightnessFilter.enabled = false;
 
         spR = teleportTargetGraphic.GetComponentsInChildren<SpriteRenderer>();
+
+        v = GameObject.FindGameObjectWithTag("TpProfile").GetComponent<Volume>()?.profile;
+        v.TryGet(out ld);
+        v.TryGet(out vg);
+        v.TryGet(out cha);
     }
 
     // Update is called once per frame
-    void FixedUpdate()
+    void Update()
     {
         //Debug.Log(Camera.main.ScreenToWorldPoint(Input.mousePosition));
 
@@ -107,6 +131,7 @@ public class PlayerBehaviour2 : MonoBehaviour
         {
             TimeSlow();
             CalcTargetPos();
+            PostProcessingEffectsOn();
             if (!gm.activeRoom.GetComponent<RoomManager>().isCompleted) 
             { 
                 TPJuiceDrain(); 
@@ -148,6 +173,7 @@ public class PlayerBehaviour2 : MonoBehaviour
                 ParticleSystem tpP = Instantiate(TpParticles, transform.position, Quaternion.identity);
                 tpP.Play();
                 Destroy(tpP.gameObject, 0.6f);
+                StartPostProcessingEffectsOff();
 
                 TimeContinue();
                 Teleport();
@@ -213,10 +239,13 @@ public class PlayerBehaviour2 : MonoBehaviour
         }
 
         //max out TC when room is completed
-        if (gm.activeRoom.GetComponent<RoomManager>().isCompleted)
+        if(gm.activeRoom != null)
         {
-            teleportJuice = maxTeleportJuice;
-            //timeBtwTCRegenCounter = timeBtwTCRegen;
+            if (gm.activeRoom.GetComponent<RoomManager>().isCompleted)
+            {
+                teleportJuice = maxTeleportJuice;
+                //timeBtwTCRegenCounter = timeBtwTCRegen;
+            }
         }
     }
 
@@ -326,6 +355,51 @@ public class PlayerBehaviour2 : MonoBehaviour
         }
     }
 
+    private void PostProcessingEffectsOn()
+    {
+        ld.active = true;
+        vg.active = true;
+        cha.active = true;
+
+        ld.intensity.value = normalDistortionValue;
+        ld.center.value = new Vector2(gm.mainCam.WorldToScreenPoint(teleportTargetGraphic.transform.position).x / gm.mainCam.scaledPixelWidth, gm.mainCam.WorldToScreenPoint(teleportTargetGraphic.transform.position).y / gm.mainCam.scaledPixelHeight);
+
+        vg.center.value = new Vector2(gm.mainCam.WorldToScreenPoint(teleportTargetGraphic.transform.position).x / gm.mainCam.scaledPixelWidth, gm.mainCam.WorldToScreenPoint(teleportTargetGraphic.transform.position).y / gm.mainCam.scaledPixelHeight);
+
+    }
+
+    private void StartPostProcessingEffectsOff()
+    {
+        if(PostProcessingEffectsOffRoutine != null) { StopCoroutine(PostProcessingEffectsOffRoutine); }
+        PostProcessingEffectsOffRoutine = StartCoroutine(IEPostProcessingEffectsOff());
+    }
+
+    private IEnumerator IEPostProcessingEffectsOff()
+    {
+        Vector2 screenPos = new Vector2(gm.mainCam.WorldToScreenPoint(teleportTargetGraphic.transform.position).x / gm.mainCam.scaledPixelWidth, gm.mainCam.WorldToScreenPoint(teleportTargetGraphic.transform.position).y / gm.mainCam.scaledPixelHeight);
+        Vector2 offsetScreenPos = new Vector2(0.5f, 0.5f) + new Vector2(((screenPos.x - 0.5f) / 2) * ldOffset, ((screenPos.y - 0.5f) / 2) * ldOffset);
+        ld.center.value = offsetScreenPos;
+
+        float lerpTime = 0;
+
+        while(lerpTime < 1)
+        {
+            lerpTime += Time.deltaTime / tpAnimDuration;
+            float evaluatedLerpTime = tpAnimCurve.Evaluate(lerpTime);
+            float newIntesityValue = Mathf.Lerp(minDistortionValue, maxDistortionValue, evaluatedLerpTime);
+
+            ld.intensity.value = newIntesityValue;
+
+            yield return null;
+        }
+
+        ld.active = false;
+        vg.active = false;
+        cha.active = false;
+
+        yield return null;
+    }
+
     public void EnvironmentDamage()
     {
         GetComponent<Rigidbody2D>().velocity = Vector2.zero;
@@ -336,6 +410,43 @@ public class PlayerBehaviour2 : MonoBehaviour
     private void Death()
     {
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void GotUpgrade(UpgradeType upgradeType)
+    {
+        if(upgradeType == UpgradeType.MaxHpUpgrade)
+        {
+            maxHitPoints += gm.maxHPCellAmntInc;
+            hitPoints += gm.maxHPCellAmntInc;
+
+            healthSlider.maxValue = maxHitPoints;
+        }
+        else if(upgradeType == UpgradeType.MaxTpjUpgrade)
+        {
+            maxTeleportJuice += gm.maxTpjAmntInc;
+
+            teleportSlider.maxValue = maxTeleportJuice;
+        }
+        else if (upgradeType == UpgradeType.TpjRegenUpgrade)
+        {
+            teleportJuiceRegenMultiplier += gm.tpjRegenAmntInc;
+        }
+        else if (upgradeType == UpgradeType.TpRangeUpgrade)
+        {
+            teleportRange += gm.tpRangeAmntInc;
+        }
+        else if (upgradeType == UpgradeType.TpTimeSlowUpgrade)
+        {
+            timeSlow -= gm.tpTimeSlowAmntDec;
+        }
+        else if (upgradeType == UpgradeType.TpDamageUpgrade)
+        {
+            tpDamageOutput += gm.tpDamageAmntInc;
+        }
+        else if (upgradeType == UpgradeType.ContactDamageUpgrade)
+        {
+            contactDamageOutput += gm.contactDamageAmntInc;
+        }
     }
 
     private IEnumerator JustTPCooldown()

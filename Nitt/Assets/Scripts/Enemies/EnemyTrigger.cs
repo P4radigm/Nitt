@@ -50,6 +50,7 @@ public class EnemyTrigger : MonoBehaviour
                 else
                 {
                     pB.teleportJuice += cellRegenAmount;
+                    gm.Freeze();
                     gm.EnemyDeath(parentObject);
                 }
             }

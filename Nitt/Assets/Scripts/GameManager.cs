@@ -18,8 +18,14 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    [HideInInspector] public Camera mainCam;
+    [SerializeField] [Range(0f, 0.5f)] private float freezeDuration;
+    private bool isFrozen = false;
+    private float pendingFreezeDuration = 0f;
+    private Coroutine freezeRoutine = null;
+
     [Header("Room Management")]
-    [HideInInspector] public GameObject activeRoom;
+    [HideInInspector] public GameObject activeRoom = null;
     [HideInInspector]  public GameObject[][] topRooms;
     [HideInInspector]  public GameObject[][] rightRooms;
     [HideInInspector]  public GameObject[][] bottomRooms;
@@ -43,6 +49,15 @@ public class GameManager : MonoBehaviour
     [SerializeField] private GameObject[] RoomsLRB;
     [Space]
     [SerializeField] private GameObject[] RoomsLRBT;
+
+    [Header("UpgradeValues")]
+    public int maxHPCellAmntInc;
+    public float maxTpjAmntInc;
+    public float tpjRegenAmntInc;
+    public float tpRangeAmntInc;
+    public float tpTimeSlowAmntDec;
+    public float tpDamageAmntInc;
+    public float contactDamageAmntInc;
 
     //Room types:
     //0 -> L
@@ -107,12 +122,21 @@ public class GameManager : MonoBehaviour
         leftRooms[5] = RoomsLRT;
         leftRooms[6] = RoomsLRB;
         leftRooms[7] = RoomsLRBT;
+
+
+        mainCam = FindObjectOfType<Camera>();
     }
 
     // Update is called once per frame
     void Update()
     {
-        
+        if(pendingFreezeDuration > 0 && !isFrozen)
+        {
+            if (freezeRoutine == null)
+            {
+                freezeRoutine = StartCoroutine(DoFreezeIE()); 
+            }
+        }
     }
 
     public void EnemyDeath(GameObject enemyThatDies)
@@ -125,5 +149,24 @@ public class GameManager : MonoBehaviour
         ParticleSystem onDeathFX = Instantiate(onEnemyDeathParticles, lastPos, lastRot);
         onDeathFX.Play(true);
         Destroy(onDeathFX.gameObject, 1f);
+    }
+
+    public void Freeze()
+    {
+        pendingFreezeDuration = freezeDuration;
+    }
+
+    IEnumerator DoFreezeIE()
+    {
+        isFrozen = true;
+        var originalTimeScale = Time.timeScale;
+        Time.timeScale = 0f;
+
+        yield return new WaitForSecondsRealtime(freezeDuration);
+
+        Time.timeScale = originalTimeScale;
+        pendingFreezeDuration = 0;
+        isFrozen = false;
+        freezeRoutine = null;
     }
 }
