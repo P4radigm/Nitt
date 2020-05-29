@@ -12637,6 +12637,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: StartRoom LRBT
       objectReference: {fileID: 0}
+    - target: {fileID: 4278424756722299352, guid: 5409ba45a62d4a8489867cc6ffce11ad,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 4278424756722299355, guid: 5409ba45a62d4a8489867cc6ffce11ad,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -12691,6 +12696,11 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4278424756879147479, guid: 5409ba45a62d4a8489867cc6ffce11ad,
+        type: 3}
+      propertyPath: m_ColliderPaths.Array.size
+      value: 1
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 5409ba45a62d4a8489867cc6ffce11ad, type: 3}

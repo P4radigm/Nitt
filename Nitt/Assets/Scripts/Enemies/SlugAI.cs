@@ -16,6 +16,13 @@ public class SlugAI : MonoBehaviour
     [SerializeField] private float pauzeBeforeShoot;
     [SerializeField] private float afterShotCooldown;
 
+    [Header("Shoot Hitbox Settings")]
+    [SerializeField] private BoxCollider2D boxCollider;
+    [SerializeField] private float hitboxHeight;
+    [SerializeField] private float hitboxWidth;
+    private float yHitboxOffset;
+    
+
     [Header("Needed")]
     [SerializeField] private GameObject rightCheck;
     [SerializeField] private GameObject leftCheck;
@@ -33,6 +40,12 @@ public class SlugAI : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        //boxCollider = GetComponent<BoxCollider2D>();
+        yHitboxOffset = hitboxHeight / 2;
+
+        boxCollider.size = new Vector2(hitboxWidth, hitboxHeight);
+        boxCollider.offset = new Vector2(0, yHitboxOffset);
+
         initialWaspPos = waspGraphic.transform.localPosition;
 
         RaycastHit2D initGroundCheck = Physics2D.Raycast(transform.position, transform.up * -1, Mathf.Infinity, 1 << LayerMask.NameToLayer("Environment"));
@@ -59,10 +72,10 @@ public class SlugAI : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (readyToFire)
-        {
-            CheckForPlayer();
-        }
+        //if (readyToFire)
+        //{
+        //    CheckForPlayer();
+        //}
 
         //movement
         CalcDir();
@@ -90,13 +103,24 @@ public class SlugAI : MonoBehaviour
         }
     }
 
-    private void CheckForPlayer()
-    {
-        RaycastHit2D checkForPlayer = Physics2D.Raycast(transform.position, transform.up, Mathf.Infinity, 1 << LayerMask.NameToLayer("Player"));
+    //private void CheckForPlayer()
+    //{
+    //    RaycastHit2D checkForPlayer = Physics2D.Raycast(transform.position, transform.up, Mathf.Infinity, 1 << LayerMask.NameToLayer("Player"));
 
-        if(checkForPlayer.collider != null)
+    //    if(checkForPlayer.collider != null)
+    //    {
+    //        //fire Wasp
+    //        if (ShootWaspRoutine == null) { ShootWaspRoutine = StartCoroutine(IEShootWasp()); }
+    //    }
+    //}
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        Debug.Log("Slug Detect");
+
+        if (collision.tag == "Player" && readyToFire)
         {
-            //fire Wasp
+            Debug.Log("Slug Shoot");
             if (ShootWaspRoutine == null) { ShootWaspRoutine = StartCoroutine(IEShootWasp()); }
         }
     }
