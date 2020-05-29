@@ -412,7 +412,7 @@ public class PlayerBehaviour2 : MonoBehaviour
 
     private void Death()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        SceneManager.LoadScene("Menu");
     }
 
     public void GotUpgrade(UpgradeType upgradeType)

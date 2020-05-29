@@ -31,11 +31,23 @@ public class DoorBehaviour : MonoBehaviour
 
             if(pB != null)
             {
-                if (pB.justTP)
+                if (pB.justTP && roomManager.doorOn && !roomManager.justEntered)
                 {
+                    Debug.Log("Hit Registered");
                     roomManager.ChangeRoom(this);
                     Debug.LogWarning("Player entered door: " + gameObject);
                 }
+            }
+        }
+    }
+
+    private void OnTriggerExit2D(Collider2D collision)
+    {
+        if(collision.tag == "Player")
+        {
+            if (roomManager.justEntered)
+            {
+                roomManager.justEntered = false;
             }
         }
     }

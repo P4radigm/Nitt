@@ -40,6 +40,8 @@ public class RoomManager : MonoBehaviour
     [Header("Stats")]
     public bool isCompleted;
     public bool hasPlayer;
+    public bool doorOn = true;
+    public bool justEntered = false;
     private PlayerBehaviour2 pB;
     private Camera mainCamera;
 
@@ -184,6 +186,10 @@ public class RoomManager : MonoBehaviour
                     _roomAlreadyThere = true;
                     _newRoom = gm.spawnedRooms[i];
                     _newRoom.SetActive(true);
+                    RoomManager nrRM = _newRoom.GetComponent<RoomManager>();
+                    nrRM.doorOn = false;
+                    nrRM.justEntered = true;
+                    nrRM.StartCoroutine(nrRM.doorCooldown());
                 }
             }
 
@@ -228,6 +234,10 @@ public class RoomManager : MonoBehaviour
                     _roomAlreadyThere = true;
                     _newRoom = gm.spawnedRooms[i];
                     _newRoom.SetActive(true);
+                    RoomManager nrRM = _newRoom.GetComponent<RoomManager>();
+                    nrRM.doorOn = false;
+                    nrRM.justEntered = true;
+                    nrRM.StartCoroutine(nrRM.doorCooldown());
                 }
             }
 
@@ -270,6 +280,10 @@ public class RoomManager : MonoBehaviour
                     _roomAlreadyThere = true;
                     _newRoom = gm.spawnedRooms[i];
                     _newRoom.SetActive(true);
+                    RoomManager nrRM = _newRoom.GetComponent<RoomManager>();
+                    nrRM.doorOn = false;
+                    nrRM.justEntered = true;
+                    nrRM.StartCoroutine(nrRM.doorCooldown());
                 }
             }
 
@@ -312,6 +326,10 @@ public class RoomManager : MonoBehaviour
                     _roomAlreadyThere = true;
                     _newRoom = gm.spawnedRooms[i];
                     _newRoom.SetActive(true);
+                    RoomManager nrRM = _newRoom.GetComponent<RoomManager>();
+                    nrRM.doorOn = false;
+                    nrRM.justEntered = true;
+                    nrRM.StartCoroutine(nrRM.doorCooldown());
                 }
             }
 
@@ -341,11 +359,17 @@ public class RoomManager : MonoBehaviour
         gameObject.SetActive(false);
     }
 
+    public IEnumerator doorCooldown()
+    {
+        yield return new WaitForSeconds(1f);
+        doorOn = true;
+    }
+
     private void OnTriggerEnter2D(Collider2D collision)
     {
         if(collision.tag == "Player")
         {
-            Debug.LogWarning("Player has entered: " + gameObject);
+            //Debug.LogWarning("Player has entered: " + gameObject);
             hasPlayer = true;
         }
     }
@@ -354,7 +378,7 @@ public class RoomManager : MonoBehaviour
     {
         if (collision.tag == "Player")
         {
-            Debug.LogWarning("Player has left: " + gameObject);
+            //Debug.LogWarning("Player has left: " + gameObject);
             hasPlayer = false;
         }
     }

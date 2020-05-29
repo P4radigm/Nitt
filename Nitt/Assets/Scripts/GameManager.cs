@@ -183,20 +183,9 @@ public class GameManager : MonoBehaviour
     {
         AstarData data = AstarPath.active.data;
 
-        GridGraph gg = data.AddGraph(typeof(GridGraph)) as GridGraph;
-
-        int width = 52;
-        int height = 72;
-        float nodeSize = 0.25f;
-        float colliderDiameter = 1.5f;
+        GridGraph gg = data.gridGraph;
 
         gg.center = ggPos;
-
-        gg.SetDimensions(width, height, nodeSize);
-
-        gg.collision.type = ColliderType.Sphere;
-
-        gg.collision.diameter = colliderDiameter;
 
         AstarPath.active.Scan();
     }
