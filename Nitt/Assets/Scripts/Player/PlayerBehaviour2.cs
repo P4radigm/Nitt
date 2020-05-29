@@ -27,6 +27,7 @@ public class PlayerBehaviour2 : MonoBehaviour
     public int maxHitPoints;
     public float teleportJuice;
     public float maxTeleportJuice; 
+    public float baseTpjuiceCost;
     public float tpDamageOutput;
     public float contactDamageOutput;
     public int currency;
@@ -37,6 +38,7 @@ public class PlayerBehaviour2 : MonoBehaviour
     [Header("Player Stats Tweaks")]
     [SerializeField] private int startMaxHitPoints;
     [SerializeField] private float startMaxTeleportJuice;
+    [SerializeField] private float startBaseTpjuiceCost;
     [SerializeField] private float startTeleportJuiceRegenMultiplier;
     [SerializeField] private float startTeleportJuiceDrainMultiplier;
     [SerializeField] private float minTeleportJuiceForTP;
@@ -100,6 +102,7 @@ public class PlayerBehaviour2 : MonoBehaviour
         maxHitPoints = startMaxHitPoints;
         hitPoints = maxHitPoints;
         teleportJuice = maxTeleportJuice;
+        baseTpjuiceCost = startBaseTpjuiceCost;
         tpDamageOutput = initialTpDamageOutput;
         contactDamageOutput = inititalContactDamageOutput;
         currency = startCurrency;
@@ -127,7 +130,7 @@ public class PlayerBehaviour2 : MonoBehaviour
         //Debug.Log(Camera.main.ScreenToWorldPoint(Input.mousePosition));
 
         //Player Input
-        if (Input.GetMouseButton(0) && teleportJuice > minTeleportJuiceForTP)
+        if (Input.GetMouseButton(0) && teleportJuice > minTeleportJuiceForTP && teleportJuice > baseTpjuiceCost)
         {
             TimeSlow();
             CalcTargetPos();
@@ -290,10 +293,10 @@ public class PlayerBehaviour2 : MonoBehaviour
         justTP = true;
         StartCoroutine(JustTPCooldown());
 
-        //if (!gm.activeRoom.GetComponent<RoomManager>().isCompleted)
-        //{
-        //    teleportCells--;
-        //}
+        if (!gm.activeRoom.GetComponent<RoomManager>().isCompleted)
+        {
+            teleportJuice -= baseTpjuiceCost;
+        }
 
         beginPhaseMouse = true;
     }

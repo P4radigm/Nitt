@@ -176,10 +176,10 @@ MonoBehaviour:
   tpTarget: {fileID: 3532630255024731803}
   speed: 400
   nextWaypointDistance: 3
-  teleportDistance: 3
-  startTpCooldownTime: 4
-  brakeTimer: 0.7
-  teleportTimer: 1
+  teleportDistance: 4
+  startTpCooldownTime: 3
+  brakeTimer: 0.3
+  teleportTimer: 0.7
   newDrag: 3
   newAngDrag: 3
 --- !u!50 &3532630255405266008
@@ -202,7 +202,7 @@ Rigidbody2D:
   m_Interpolate: 0
   m_SleepingMode: 1
   m_CollisionDetection: 0
-  m_Constraints: 0
+  m_Constraints: 4
 --- !u!1 &3532630255575517497
 GameObject:
   m_ObjectHideFlags: 0
@@ -315,8 +315,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parentObject: {fileID: 3532630255405266010}
-  cellRegenAmount: 2
+  onDeathParticles: {fileID: 0}
+  cellRegenAmount: 300
   damageAmount: 1
   initialHP: 10
   takesContactDamage: 1
   initialContactDamage: 5
+  active: 1

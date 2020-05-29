@@ -1,6 +1,26 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Pathfinding;
+
+public enum RoomTypeEnum
+{
+    L,
+    T,
+    R,
+    B,
+    LR,
+    TB,
+    LT,
+    LB,
+    RT,
+    RB,
+    TBL,
+    TBR,
+    LRT,
+    LRB,
+    LRBT
+}
 
 public class GameManager : MonoBehaviour
 {
@@ -59,6 +79,12 @@ public class GameManager : MonoBehaviour
     public float tpDamageAmntInc;
     public float contactDamageAmntInc;
 
+    [Header("Enemy Options")]
+    public float totalEnemySpawnTime;
+    public float pauzeAfterLastEnemy;
+    public GameObject[] enemyPrefabs;
+
+
     //Room types:
     //0 -> L
     //1 -> T
@@ -78,6 +104,8 @@ public class GameManager : MonoBehaviour
 
     [Header("VFX")]
     [SerializeField] private ParticleSystem onEnemyDeathParticles;
+    public ParticleSystem enemySpawnFX;
+    public ParticleSystem afterEnemySpawnFX;
 
 
     // Start is called before the first frame update
@@ -149,6 +177,28 @@ public class GameManager : MonoBehaviour
         ParticleSystem onDeathFX = Instantiate(onEnemyDeathParticles, lastPos, lastRot);
         onDeathFX.Play(true);
         Destroy(onDeathFX.gameObject, 1f);
+    }
+
+    public void AddNewGridGraph(Vector3 ggPos)
+    {
+        AstarData data = AstarPath.active.data;
+
+        GridGraph gg = data.AddGraph(typeof(GridGraph)) as GridGraph;
+
+        int width = 52;
+        int height = 72;
+        float nodeSize = 0.25f;
+        float colliderDiameter = 1.5f;
+
+        gg.center = ggPos;
+
+        gg.SetDimensions(width, height, nodeSize);
+
+        gg.collision.type = ColliderType.Sphere;
+
+        gg.collision.diameter = colliderDiameter;
+
+        AstarPath.active.Scan();
     }
 
     public void Freeze()

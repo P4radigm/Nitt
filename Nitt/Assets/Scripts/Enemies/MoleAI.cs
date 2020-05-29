@@ -7,6 +7,7 @@ public class MoleAI : MonoBehaviour
     [SerializeField] float speed = 100f;
     [SerializeField] float startShootCooldown;
     [SerializeField] bool shootyBoi;
+    [SerializeField] float rayCastLength = 0.295f;
 
     [SerializeField] GameObject needlePrefab;
     [SerializeField] float instantiateOffset;
@@ -55,6 +56,39 @@ public class MoleAI : MonoBehaviour
         else
         {
             shootCooldown -= Time.deltaTime;
+        }
+
+        RaycastHit2D rayCastHitUp = Physics2D.Raycast(transform.position, Vector2.up, rayCastLength, 1 << LayerMask.NameToLayer("Environment"));
+        Debug.DrawRay(transform.position, Vector2.up * rayCastLength, Color.cyan);
+        RaycastHit2D rayCastHitRight = Physics2D.Raycast(transform.position, Vector2.right, rayCastLength, 1 << LayerMask.NameToLayer("Environment"));
+        Debug.DrawRay(transform.position, Vector2.right * rayCastLength, Color.cyan);
+        RaycastHit2D rayCastHitDown = Physics2D.Raycast(transform.position, Vector2.down, rayCastLength, 1 << LayerMask.NameToLayer("Environment"));
+        Debug.DrawRay(transform.position, Vector2.down * rayCastLength, Color.cyan);
+        RaycastHit2D rayCastHitLeft = Physics2D.Raycast(transform.position, Vector2.left, rayCastLength, 1 << LayerMask.NameToLayer("Environment"));
+        Debug.DrawRay(transform.position, Vector2.left * rayCastLength, Color.cyan);
+
+        if(rayCastHitUp.collider != null)
+        {
+            Vector2 newDir = Vector2.Reflect(direction, rayCastHitUp.normal);
+            direction = newDir;
+        }
+
+        if (rayCastHitRight.collider != null)
+        {
+            Vector2 newDir = Vector2.Reflect(direction, rayCastHitRight.normal);
+            direction = newDir;
+        }
+
+        if (rayCastHitDown.collider != null)
+        {
+            Vector2 newDir = Vector2.Reflect(direction, rayCastHitDown.normal);
+            direction = newDir;
+        }
+
+        if (rayCastHitLeft.collider != null)
+        {
+            Vector2 newDir = Vector2.Reflect(direction, rayCastHitLeft.normal);
+            direction = newDir;
         }
     }
 

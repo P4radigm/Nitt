@@ -151,7 +151,7 @@ public class LevelGenerator : MonoBehaviour
                     Vector3 curPos = spawnedRooms[i].transform.position;
                     spawnedRooms.Remove(badRoom);
                     Destroy(badRoom);
-                    GameObject correctRoom = Instantiate(Rooms[rt.afterCheckType][Random.Range(0, Rooms[rt.afterCheckType].Length)], curPos, Quaternion.identity, transform.parent);
+                    GameObject correctRoom = Instantiate(Rooms[(int)rt.afterCheckType][Random.Range(0, Rooms[(int)rt.afterCheckType].Length)], curPos, Quaternion.identity, transform.parent);
                     spawnedRooms.Insert(i, correctRoom);
                 }
             }

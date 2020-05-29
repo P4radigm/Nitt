@@ -97,11 +97,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   parentObject: {fileID: 168772940785571326}
   onDeathParticles: {fileID: 0}
-  cellRegenAmount: 0
+  cellRegenAmount: 100
   damageAmount: 1
   initialHP: 1
   takesContactDamage: 0
   initialContactDamage: 0
+  active: 1
 --- !u!60 &168772940586457685
 PolygonCollider2D:
   m_ObjectHideFlags: 0
@@ -180,6 +181,7 @@ MonoBehaviour:
   speed: 2
   startShootCooldown: 4
   shootyBoi: 1
+  rayCastLength: 0.295
   needlePrefab: {fileID: 9203330431960456823, guid: edc4b05d36eb9744aa06db6c7c5ce84a,
     type: 3}
   instantiateOffset: 0.5

@@ -96,11 +96,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   parentObject: {fileID: 1239257391974479978}
-  cellRegenAmount: 1
+  onDeathParticles: {fileID: 0}
+  cellRegenAmount: 150
   damageAmount: 1
   initialHP: 1
   takesContactDamage: 1
   initialContactDamage: 10
+  active: 1
 --- !u!60 &1239257391830028926
 PolygonCollider2D:
   m_ObjectHideFlags: 0

@@ -27,16 +27,17 @@ public class RoomManager : MonoBehaviour
     public GameObject leftEntrance = null;
 
     [Header("Enemy Spawn Options")]
-    [SerializeField] private GameObject[] enemyPrefabs;
     [SerializeField] private EnemyToBeSpawned[] enemiesToBeSpawned;
-    [SerializeField] private float totalSpawnTime;
-    [SerializeField] private float lastPauzeTime;
+
+    private GameObject[] localEnemyPrefabs;
+    private float totalSpawnTime;
+    private float lastPauzeTime;
     private List<GameObject> spawnedEnemies = new List<GameObject>();
 
-    [Header("VFX")]
-    [SerializeField] private ParticleSystem enemySpawnVFX;
-    [SerializeField] private ParticleSystem enemyAfterSpawnVFX;
+    private ParticleSystem enemySpawnVFX;
+    private ParticleSystem enemyAfterSpawnVFX;
 
+    [Header("Stats")]
     public bool isCompleted;
     public bool hasPlayer;
     private PlayerBehaviour2 pB;
@@ -54,6 +55,12 @@ public class RoomManager : MonoBehaviour
         gm = GameManager.instance;
         pB = FindObjectOfType<PlayerBehaviour2>();
         mainCamera = FindObjectOfType<Camera>();
+
+        localEnemyPrefabs = gm.enemyPrefabs;
+        totalSpawnTime = gm.totalEnemySpawnTime;
+        lastPauzeTime = gm.pauzeAfterLastEnemy;
+        enemySpawnVFX = gm.enemySpawnFX;
+        enemyAfterSpawnVFX = gm.afterEnemySpawnFX;
 
         if (topEntrance != null) { topEntrance.SetActive(false); }
         if (rightEntrance != null) { rightEntrance.SetActive(false); }
@@ -111,7 +118,7 @@ public class RoomManager : MonoBehaviour
 
             yield return new WaitForSeconds(totalSpawnTime / enemiesToBeSpawned.Length);
             Destroy(spawnFX.gameObject);
-            GameObject Enemy = Instantiate(enemyPrefabs[(int)enemiesToBeSpawned[i].enemyType], vec3SpawnPoint, spawnRot, transform);
+            GameObject Enemy = Instantiate(localEnemyPrefabs[(int)enemiesToBeSpawned[i].enemyType], vec3SpawnPoint, spawnRot, transform);
 
             ParticleSystem afterSpawnFX = Instantiate(enemyAfterSpawnVFX, vec3SpawnPoint, Quaternion.identity);
             afterSpawnFX.Play(true);
@@ -187,9 +194,12 @@ public class RoomManager : MonoBehaviour
                 GameObject[] randomRoomTypeArray = gm.topRooms[randomRoomType];
                 int randomRoom = Random.Range(0, randomRoomTypeArray.Length);
 
-                _newRoom = Instantiate(randomRoomTypeArray[randomRoom], transform.position + new Vector3(0, 20, 0), Quaternion.identity);
+                _newRoom = Instantiate(randomRoomTypeArray[randomRoom], transform.position + new Vector3(0, 20, 0), Quaternion.identity, transform.parent);
                 gm.spawnedRooms.Add(_newRoom);
+
+                gm.AddNewGridGraph(transform.position + new Vector3(0, 20, 0));
             }
+
 
             //update camera
             mainCamera.transform.position += new Vector3(0, 20, 0);
@@ -199,6 +209,7 @@ public class RoomManager : MonoBehaviour
 
             //enable player script
             pB.enabled = true;
+
         }
         else if (door.doorLocation == DoorLocation.Right)
         {
@@ -227,8 +238,10 @@ public class RoomManager : MonoBehaviour
                 GameObject[] randomRoomTypeArray = gm.rightRooms[randomRoomType];
                 int randomRoom = Random.Range(0, randomRoomTypeArray.Length);
 
-                _newRoom = Instantiate(randomRoomTypeArray[randomRoom], transform.position + new Vector3(13, 0, 0), Quaternion.identity);
+                _newRoom = Instantiate(randomRoomTypeArray[randomRoom], transform.position + new Vector3(13, 0, 0), Quaternion.identity, transform.parent);
                 gm.spawnedRooms.Add(_newRoom);
+
+                gm.AddNewGridGraph(transform.position + new Vector3(13, 0, 0));
             }
 
             //update camera
@@ -267,8 +280,10 @@ public class RoomManager : MonoBehaviour
                 GameObject[] randomRoomTypeArray = gm.bottomRooms[randomRoomType];
                 int randomRoom = Random.Range(0, randomRoomTypeArray.Length);
 
-                _newRoom = Instantiate(randomRoomTypeArray[randomRoom], transform.position + new Vector3(0, -20, 0), Quaternion.identity);
+                _newRoom = Instantiate(randomRoomTypeArray[randomRoom], transform.position + new Vector3(0, -20, 0), Quaternion.identity, transform.parent);
                 gm.spawnedRooms.Add(_newRoom);
+
+                gm.AddNewGridGraph(transform.position + new Vector3(0, -20, 0));
             }
 
             //update camera
@@ -307,8 +322,10 @@ public class RoomManager : MonoBehaviour
                 GameObject[] randomRoomTypeArray = gm.leftRooms[randomRoomType];
                 int randomRoom = Random.Range(0, randomRoomTypeArray.Length);
 
-                _newRoom = Instantiate(randomRoomTypeArray[randomRoom], transform.position + new Vector3(-13, 0, 0), Quaternion.identity);
+                _newRoom = Instantiate(randomRoomTypeArray[randomRoom], transform.position + new Vector3(-13, 0, 0), Quaternion.identity, transform.parent);
                 gm.spawnedRooms.Add(_newRoom);
+
+                gm.AddNewGridGraph(transform.position + new Vector3(-13, 0, 0));
             }
 
             //update camera

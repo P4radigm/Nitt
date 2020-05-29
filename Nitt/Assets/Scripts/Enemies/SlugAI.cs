@@ -35,7 +35,7 @@ public class SlugAI : MonoBehaviour
     {
         initialWaspPos = waspGraphic.transform.localPosition;
 
-        RaycastHit2D initGroundCheck = Physics2D.Raycast(transform.position, transform.up * -1);
+        RaycastHit2D initGroundCheck = Physics2D.Raycast(transform.position, transform.up * -1, Mathf.Infinity, 1 << LayerMask.NameToLayer("Environment"));
 
         if(initGroundCheck.collider != null)
         {

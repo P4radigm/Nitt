@@ -4,9 +4,9 @@ using UnityEngine;
 
 public class RoomType : MonoBehaviour
 {
-    public int roomType;
+    public RoomTypeEnum roomType;
 
-    public int afterCheckType = -1;
+    public RoomTypeEnum afterCheckType;
 
     //Room types:
     //0 -> L
@@ -73,77 +73,77 @@ public class RoomType : MonoBehaviour
         if (upRoom == true && rightRoom == true && downRoom == true && leftRoom == true)
         {
             //14 -> LRBT
-            afterCheckType = 14;
+            afterCheckType = RoomTypeEnum.LRBT;
         }
         else if (upRoom == false && rightRoom == true && downRoom == true && leftRoom == true)
         {
             //13 -> LRB
-            afterCheckType = 13;
+            afterCheckType = RoomTypeEnum.LRB;
         }        
         else if (upRoom == true && rightRoom == true && downRoom == false && leftRoom == true)
         {
             //12 -> LRT
-            afterCheckType = 12;
+            afterCheckType = RoomTypeEnum.LRT;
         }
         else if (upRoom == true && rightRoom == true && downRoom == true && leftRoom == false)
         {
             //11 -> TBR
-            afterCheckType = 11;
+            afterCheckType = RoomTypeEnum.TBR;
         }
         else if (upRoom == true && rightRoom == false && downRoom == true && leftRoom == true)
         {
             //10 -> TBL
-            afterCheckType = 10;
+            afterCheckType = RoomTypeEnum.TBL;
         }
         else if (upRoom == false && rightRoom == true && downRoom == true && leftRoom == false)
         {
             //9 -> RB
-            afterCheckType = 9;
+            afterCheckType = RoomTypeEnum.RB;
         }
         else if (upRoom == true && rightRoom == true && downRoom == false && leftRoom == false)
         {
             //8 -> RT
-            afterCheckType = 8;
+            afterCheckType = RoomTypeEnum.RT;
         }
         else if (upRoom == false && rightRoom == false && downRoom == true && leftRoom == true)
         {
             //7 -> LB
-            afterCheckType = 7;
+            afterCheckType = RoomTypeEnum.LB;
         }
         else if (upRoom == true && rightRoom == false && downRoom == false && leftRoom == true)
         {
             //6 -> LT
-            afterCheckType = 6;
+            afterCheckType = RoomTypeEnum.LT;
         }
         else if (upRoom == true && rightRoom == false && downRoom == true && leftRoom == false)
         {
             //5 -> TB
-            afterCheckType = 5;
+            afterCheckType = RoomTypeEnum.TB;
         }
         else if (upRoom == false && rightRoom == true && downRoom == false && leftRoom == true)
         {
             //4 -> LR
-            afterCheckType = 4;
+            afterCheckType = RoomTypeEnum.LR;
         }
         else if (upRoom == false && rightRoom == false && downRoom == true && leftRoom == false)
         {
             //3 -> B
-            afterCheckType = 3;
+            afterCheckType = RoomTypeEnum.B;
         }
         else if (upRoom == false && rightRoom == true && downRoom == false && leftRoom == false)
         {
             //2 -> R
-            afterCheckType = 2;
+            afterCheckType = RoomTypeEnum.R;
         }
         else if (upRoom == true && rightRoom == false && downRoom == false && leftRoom == false)
         {
             //1 -> T
-            afterCheckType = 1;
+            afterCheckType = RoomTypeEnum.T;
         }
         else if (upRoom == false && rightRoom == false && downRoom == false && leftRoom == true)
         {
             //0 -> L
-            afterCheckType = 0;
+            afterCheckType = RoomTypeEnum.L;
         }
         else
         {
