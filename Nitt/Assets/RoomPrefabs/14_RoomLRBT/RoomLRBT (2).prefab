@@ -200,6 +200,8 @@ MonoBehaviour:
     spawnTransform: {fileID: 8368887637862935310}
   isCompleted: 0
   hasPlayer: 0
+  doorOn: 1
+  justEntered: 0
 --- !u!1 &6154341623080157725
 GameObject:
   m_ObjectHideFlags: 0
@@ -6129,7 +6131,7 @@ PrefabInstance:
     - target: {fileID: 4723519096769906100, guid: 3fd068116d0cf9c4e845664b68d3ffd9,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0
+      value: 0.5
       objectReference: {fileID: 0}
     - target: {fileID: 4723519096769906100, guid: 3fd068116d0cf9c4e845664b68d3ffd9,
         type: 3}

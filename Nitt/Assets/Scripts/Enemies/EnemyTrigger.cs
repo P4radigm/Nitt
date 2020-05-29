@@ -50,13 +50,14 @@ public class EnemyTrigger : MonoBehaviour
                 else
                 {
                     pB.teleportJuice += cellRegenAmount;
-                    gm.Freeze();
+                    gm.Freeze(0.08f);
                     gm.EnemyDeath(parentObject);
                 }
             }
             else
             {
                 pB.hitPoints -= damageAmount;
+                gm.Freeze(0.5f);
 
                 if (takesContactDamage)
                 {

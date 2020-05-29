@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Pathfinding;
 
 public enum EnemyType { 
     Needle,
@@ -143,6 +144,8 @@ public class RoomManager : MonoBehaviour
             //Particles
             spawnedEnemies.Add(Enemy);
         }
+
+        gm.AddNewGridGraph(transform.position);
 
         yield return new WaitForSeconds(lastPauzeTime);
 
@@ -356,7 +359,7 @@ public class RoomManager : MonoBehaviour
             pB.enabled = true;
         }
 
-        gameObject.SetActive(false);
+        //gameObject.SetActive(false);
     }
 
     public IEnumerator doorCooldown()

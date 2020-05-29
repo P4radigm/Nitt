@@ -39,7 +39,7 @@ public class GameManager : MonoBehaviour
     }
 
     [HideInInspector] public Camera mainCam;
-    [SerializeField] [Range(0f, 0.5f)] private float freezeDuration;
+    private float freezeDuration = 1;
     private bool isFrozen = false;
     private float pendingFreezeDuration = 0f;
     private Coroutine freezeRoutine = null;
@@ -190,9 +190,10 @@ public class GameManager : MonoBehaviour
         AstarPath.active.Scan();
     }
 
-    public void Freeze()
+    public void Freeze(float _freezeDuration)
     {
-        pendingFreezeDuration = freezeDuration;
+        pendingFreezeDuration = _freezeDuration;
+        freezeDuration = _freezeDuration;
     }
 
     IEnumerator DoFreezeIE()

@@ -31,7 +31,7 @@ public class DoorBehaviour : MonoBehaviour
 
             if(pB != null)
             {
-                if (pB.justTP && roomManager.doorOn && !roomManager.justEntered)
+                if (roomManager.doorOn && !roomManager.justEntered)
                 {
                     Debug.Log("Hit Registered");
                     roomManager.ChangeRoom(this);
