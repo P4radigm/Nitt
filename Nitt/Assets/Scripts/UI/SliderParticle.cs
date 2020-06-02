@@ -6,8 +6,8 @@ using UnityEngine.UI;
 public class SliderParticle : MonoBehaviour
 {
     [SerializeField] private Slider attachedSlider;
-    [SerializeField] private float xStart = 110f;
-    [SerializeField] private float xEnd = 110f;
+    public float xStart = 110f;
+    public float xEnd = 110f;
     [SerializeField] private float maxOffset;
     [SerializeField] private float minOffset;
     [SerializeField] private float xOffset;

@@ -54,9 +54,11 @@ public class PlayerBehaviour2 : MonoBehaviour
     [SerializeField] private SpriteMask playerCircleMask;
     [SerializeField] private Slider healthSlider;
     [SerializeField] private Slider teleportSlider;
-    [SerializeField] private ParticleSystem regenParticles;
-    [SerializeField] private ParticleSystem drainParticles;
+    [SerializeField] private ParticleSystem[] regenParticles;
+    [SerializeField] private ParticleSystem[] drainParticles;
     [SerializeField] private ParticleSystem TpParticles;
+    [SerializeField] private TpUIColorManager tpAsset;
+    [SerializeField] private AfterTpUIBar afterTpBar;
 
     private SpriteRenderer[] spR;
     private float fixedDeltaTime;
@@ -64,6 +66,8 @@ public class PlayerBehaviour2 : MonoBehaviour
     private bool beginPhaseMouse = true;
     private bool particlesAllowed = false;
     private bool regenAllowed = false;
+    private bool firstDrain = true;
+    private bool firstRegen = true;
     private VolumeProfile v;
     private LensDistortion ld;
     private Vignette vg;
@@ -219,6 +223,16 @@ public class PlayerBehaviour2 : MonoBehaviour
             //teleportTargetGraphic.SetActive(false);
         }
 
+        if (teleportJuice < baseTpjuiceCost)
+        {
+            tpAsset.rainbowOn = true;
+        }
+        else
+        {
+            tpAsset.rainbowOn = false;
+            tpAsset.GetComponent<SpriteRenderer>().color = Color.white;
+        }
+
         //HP cap
         if (hitPoints > maxHitPoints)
         {
@@ -230,6 +244,12 @@ public class PlayerBehaviour2 : MonoBehaviour
         //{
         //    teleportCells = maxTeleportCells;
         //}
+
+        //TPJ cap
+        if(teleportJuice > maxTeleportJuice)
+        {
+            teleportJuice = maxTeleportJuice;
+        }
 
         //update UI
         healthSlider.value = hitPoints;
@@ -303,59 +323,64 @@ public class PlayerBehaviour2 : MonoBehaviour
 
     private void TPJuiceDrain()
     {
+        firstRegen = true;
+
+        afterTpBar.gameObject.SetActive(true);
+        
         teleportJuice -= Time.deltaTime * teleportJuiceDrainMultiplier;
-        if (!drainParticles.isPlaying)
-        {
-            drainParticles.gameObject.SetActive(true);
-            drainParticles.Play();
-        }
 
-        if (!regenParticles.isStopped)
+        if (firstDrain)
         {
-            regenParticles.gameObject.SetActive(false);
-            regenParticles.Stop();
-            ParticleSystem _System;
-            _System = regenParticles;
-            ParticleSystem.Particle[] _Particles;
-            _Particles = new ParticleSystem.Particle[_System.main.maxParticles];
-
-            for (int i = 0; i < _Particles.Length; i++)
+            for (int i = 0; i < drainParticles.Length; i++)
             {
-                _Particles[i].velocity = Vector3.zero;
+                drainParticles[i].gameObject.SetActive(true);
+                drainParticles[i].Play();
             }
         }
 
+        if (firstDrain)
+        {
+            for (int i = 0; i < regenParticles.Length; i++)
+            {
+                regenParticles[i].gameObject.SetActive(false);
+                regenParticles[i].Stop();
+            }
+        }
+
+        firstDrain = false;
         particlesAllowed = false;
         regenAllowed = false;
     }
 
     private void TPJuiceRegen()
     {
+        firstDrain = true;
+
+        afterTpBar.gameObject.SetActive(false);
+
         if (regenAllowed)
         {
             teleportJuice += Time.deltaTime * teleportJuiceRegenMultiplier;
         }
 
-        if (!regenParticles.isPlaying && particlesAllowed == true)
+        if (firstRegen && particlesAllowed == true)
         {
-            regenParticles.gameObject.SetActive(true);
-            //Debug.Log("Ayy1");
-            regenParticles.Play();
-        }
-
-        if (!drainParticles.isStopped)
-        {
-            drainParticles.Stop();
-            ParticleSystem _System;
-            _System = drainParticles;
-            ParticleSystem.Particle[] _Particles;
-            _Particles = new ParticleSystem.Particle[_System.main.maxParticles];
-
-            for (int i = 0; i < _Particles.Length; i++)
+            for (int i = 0; i < regenParticles.Length; i++)
             {
-                _Particles[i].velocity = Vector3.zero;
+                regenParticles[i].gameObject.SetActive(true);
+                regenParticles[i].Play();
             }
         }
+
+        if (firstRegen)
+        {
+            for (int i = 0; i < drainParticles.Length; i++)
+            {
+                drainParticles[i].Stop();
+            }
+        }
+
+        firstRegen = false;
     }
 
     private void PostProcessingEffectsOn()
@@ -454,16 +479,16 @@ public class PlayerBehaviour2 : MonoBehaviour
 
     private IEnumerator JustTPCooldown()
     {
-        yield return new WaitForSeconds(justTPTimer);
+        yield return new WaitForSecondsRealtime(justTPTimer);
         justTP = false;
     }
 
     private IEnumerator RegenCooldown()
     {
-        yield return new WaitForSeconds(TPRegenCooldown - 1.3f);
+        yield return new WaitForSecondsRealtime(TPRegenCooldown - 1f);
         particlesAllowed = true;
         //Debug.Log("Ayy1");
-        yield return new WaitForSeconds(1.3f);
+        yield return new WaitForSecondsRealtime(1f);
         //Debug.Log("Ayy2");
         regenAllowed = true;
     }

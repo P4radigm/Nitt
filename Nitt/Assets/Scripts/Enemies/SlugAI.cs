@@ -114,13 +114,13 @@ public class SlugAI : MonoBehaviour
     //    }
     //}
 
-    private void OnTriggerEnter2D(Collider2D collision)
+    private void OnTriggerStay2D(Collider2D collision)
     {
-        Debug.Log("Slug Detect");
+        //Debug.Log("Slug Detect");
 
         if (collision.tag == "Player" && readyToFire)
         {
-            Debug.Log("Slug Shoot");
+            //Debug.Log("Slug Shoot");
             if (ShootWaspRoutine == null) { ShootWaspRoutine = StartCoroutine(IEShootWasp()); }
         }
     }
