@@ -56,6 +56,7 @@ public class PlayerBehaviour2 : MonoBehaviour
     [SerializeField] private Slider teleportSlider;
     [SerializeField] private ParticleSystem[] regenParticles;
     [SerializeField] private ParticleSystem[] drainParticles;
+    [SerializeField] private ParticleSystem[] tpLossParticles;
     [SerializeField] private ParticleSystem TpParticles;
     [SerializeField] private TpUIColorManager tpAsset;
     [SerializeField] private AfterTpUIBar afterTpBar;
@@ -316,6 +317,11 @@ public class PlayerBehaviour2 : MonoBehaviour
         if (!gm.activeRoom.GetComponent<RoomManager>().isCompleted)
         {
             teleportJuice -= baseTpjuiceCost;
+
+            for (int i = 0; i < tpLossParticles.Length; i++)
+            {
+                tpLossParticles[i].Play();
+            }
         }
 
         beginPhaseMouse = true;
@@ -363,13 +369,14 @@ public class PlayerBehaviour2 : MonoBehaviour
             teleportJuice += Time.deltaTime * teleportJuiceRegenMultiplier;
         }
 
-        if (firstRegen && particlesAllowed == true)
+        if (particlesAllowed)
         {
             for (int i = 0; i < regenParticles.Length; i++)
             {
                 regenParticles[i].gameObject.SetActive(true);
                 regenParticles[i].Play();
             }
+            particlesAllowed = false;
         }
 
         if (firstRegen)
@@ -485,10 +492,10 @@ public class PlayerBehaviour2 : MonoBehaviour
 
     private IEnumerator RegenCooldown()
     {
-        yield return new WaitForSecondsRealtime(TPRegenCooldown - 1f);
+        yield return new WaitForSecondsRealtime(TPRegenCooldown - 1.15f);
         particlesAllowed = true;
         //Debug.Log("Ayy1");
-        yield return new WaitForSecondsRealtime(1f);
+        yield return new WaitForSecondsRealtime(1.15f);
         //Debug.Log("Ayy2");
         regenAllowed = true;
     }
