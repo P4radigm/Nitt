@@ -8,6 +8,7 @@ public class HealthLossParticle : MonoBehaviour
     private PlayerBehaviour2 pB;
     private ParticleSystem pS;
     private ParticleSystem.ShapeModule shapeM;
+    [SerializeField] private bool isHP;
 
     // Start is called before the first frame update
     void Start()
@@ -20,12 +21,26 @@ public class HealthLossParticle : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        float maxTPJ = pB.maxTeleportJuice;
-        float TPJCost = pB.baseTpjuiceCost;
+        if (isHP)
+        {
+            Debug.Log(pS.isPlaying);
+            float maxHP = pB.maxHitPoints;
+            float damageInc = 1;
 
-        float newLength = maxLength / (maxTPJ / TPJCost);
+            float newLength = maxLength / (maxHP / damageInc);
 
-        shapeM.scale = new Vector3(newLength, shapeM.scale.y, shapeM.scale.z);
-        shapeM.position = new Vector3(newLength / 2, 0, 0);
+            shapeM.scale = new Vector3(newLength, shapeM.scale.y, shapeM.scale.z);
+            shapeM.position = new Vector3(newLength / 2, 0, 0);
+        }
+        else if (!isHP)
+        {
+            float maxTPJ = pB.maxTeleportJuice;
+            float TPJCost = pB.baseTpjuiceCost;
+
+            float newLength = maxLength / (maxTPJ / TPJCost);
+
+            shapeM.scale = new Vector3(newLength, shapeM.scale.y, shapeM.scale.z);
+            shapeM.position = new Vector3(newLength / 2, 0, 0);
+        }
     }
 }

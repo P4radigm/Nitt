@@ -257,7 +257,7 @@ public class PlayerBehaviour2 : MonoBehaviour
         teleportSlider.value = teleportJuice;
 
         //Death check
-        if (hitPoints == 0)
+        if (hitPoints <= 0)
         {
             Death();
         }
@@ -440,6 +440,7 @@ public class PlayerBehaviour2 : MonoBehaviour
         GetComponent<Rigidbody2D>().velocity = Vector2.zero;
         transform.position = lastGroundPos;
         hitPoints--;
+        gm.healthLossParticles.Play();
     }
 
     private void Death()

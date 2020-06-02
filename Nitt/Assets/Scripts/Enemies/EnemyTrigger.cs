@@ -57,6 +57,10 @@ public class EnemyTrigger : MonoBehaviour
             else
             {
                 pB.hitPoints -= damageAmount;
+
+                gm.healthLossParticles.Clear();
+                gm.healthLossParticles.Play();
+
                 gm.Freeze(0.5f);
 
                 if (takesContactDamage)

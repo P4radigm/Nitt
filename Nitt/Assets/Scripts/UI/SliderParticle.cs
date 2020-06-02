@@ -5,6 +5,7 @@ using UnityEngine.UI;
 
 public class SliderParticle : MonoBehaviour
 {
+    [SerializeField] private bool isHP; 
     [SerializeField] private Slider attachedSlider;
     public float xStart = 110f;
     public float xEnd = 110f;
@@ -44,7 +45,7 @@ public class SliderParticle : MonoBehaviour
         if (attachedSlider.value >= sliderMaxValue - maxOffset || attachedSlider.value <= sliderMinValue + minOffset)
         {
             //Debug.Log("pS Stopped");
-            if (!pS.isStopped)
+            if (!pS.isStopped && !isHP)
             {
                 pS.Stop();
             }

@@ -106,11 +106,13 @@ public class GameManager : MonoBehaviour
     [SerializeField] private ParticleSystem onEnemyDeathParticles;
     public ParticleSystem enemySpawnFX;
     public ParticleSystem afterEnemySpawnFX;
+    public ParticleSystem healthLossParticles;
 
 
     // Start is called before the first frame update
     void Start()
     {
+        healthLossParticles.Play();
         topRooms = new GameObject[8][];
         topRooms[0] = RoomsB;
         topRooms[1] = RoomsTB;
