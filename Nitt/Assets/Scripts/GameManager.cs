@@ -232,6 +232,7 @@ public class GameManager : MonoBehaviour
     {
         brightnessFilterDeath.enabled = true;
         pB.enabled = false;
+        pB.transform.parent.gameObject.SetActive(false);
 
         Color _oldCol = brightnessFilterDeath.color;
         Color _Col = Color.black;
@@ -245,6 +246,7 @@ public class GameManager : MonoBehaviour
             _Col.r = Mathf.Lerp(_oldCol.r, endCol.r, _evaluatedTimeValue);
             _Col.g = Mathf.Lerp(_oldCol.g, endCol.g, _evaluatedTimeValue);
             _Col.b = Mathf.Lerp(_oldCol.b, endCol.b, _evaluatedTimeValue);
+            _Col.a = Mathf.Lerp(_oldCol.a, endCol.a, _evaluatedTimeValue);
 
             brightnessFilterDeath.color = _Col;
 

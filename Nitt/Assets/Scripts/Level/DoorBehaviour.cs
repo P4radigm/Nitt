@@ -33,7 +33,7 @@ public class DoorBehaviour : MonoBehaviour
             {
                 if (roomManager.doorOn && !roomManager.justEntered)
                 {
-                    Debug.Log("Hit Registered");
+                    //Debug.Log("Hit Registered");
                     roomManager.ChangeRoom(this);
                     Debug.LogWarning("Player entered door: " + gameObject);
                 }

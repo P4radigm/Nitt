@@ -95,6 +95,7 @@ public class RoomManager : MonoBehaviour
 
             if (spawnedEnemies.Count == 0 && spawnedEnemiesYet)
             {
+                //Debug.Log("Doors activated");
                 isCompleted = true;
 
                 if (topEntrance != null) { topEntrance.SetActive(true); }
@@ -148,6 +149,11 @@ public class RoomManager : MonoBehaviour
         gm.AddNewGridGraph(transform.position);
 
         yield return new WaitForSeconds(lastPauzeTime);
+
+        if(enemiesToBeSpawned.Length == 0)
+        {
+            yield return new WaitForSeconds(lastPauzeTime*3);
+        }
 
         for (int i = 0; i < spawnedEnemies.Count; i++)
         {

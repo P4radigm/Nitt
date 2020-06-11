@@ -72,18 +72,27 @@ public class BatAI : MonoBehaviour
     {
         if(path == null)
         {
+            if(Vector2.Distance(rb.position, target.position) < teleportDistance && tpCooldownTime <= 0)
+            {
+                StartCoroutine(TeleportAttack());
+                tpCooldownTime = startTpCooldownTime;
+            }
+            else
+            {
+                tpCooldownTime -= Time.deltaTime;
+            }
+
             return;
         }
 
-        if(path.CompleteState == PathCompleteState.Partial)
-        {
-            return;
-        }
+        //if(path.CompleteState == PathCompleteState.Partial)
+        //{
+        //    return;
+        //}
 
         if(currentWaypoint >= path.vectorPath.Count)
         {
             reachedEndOfPath = true;
-            return;
         }
         else
         {
