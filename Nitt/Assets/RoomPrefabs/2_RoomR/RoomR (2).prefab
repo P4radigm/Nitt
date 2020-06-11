@@ -7752,8 +7752,10 @@ MonoBehaviour:
   downEntrance: {fileID: 0}
   leftEntrance: {fileID: 0}
   enemiesToBeSpawned: []
-  isCompleted: 0
+  isCompleted: 1
   hasPlayer: 0
+  doorOn: 1
+  justEntered: 0
 --- !u!1001 &5319388442945302637
 PrefabInstance:
   m_ObjectHideFlags: 0

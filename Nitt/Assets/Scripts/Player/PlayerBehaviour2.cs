@@ -1,10 +1,10 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
+using TMPro;
 
 public class PlayerBehaviour2 : MonoBehaviour
 {
@@ -21,19 +21,26 @@ public class PlayerBehaviour2 : MonoBehaviour
 
     [Header("Game Feel")]
     [SerializeField] private float timeSlow = 0.5f;
+    [SerializeField] private float comboCooldownTimer;
+    [SerializeField] private float comboTextColoredTimer;
+    [SerializeField] private AnimationCurve comboTextColoredCurve;
+    [SerializeField] private float hitCooldown = 0.3f;
+    [SerializeField] private AnimationCurve onHitPlayerGFXCurve;
+    [SerializeField] private AnimationCurve onHitBackgroundGFXCurve;
 
     [Header("Player Stats")]
     public int hitPoints;
     public int maxHitPoints;
     public float teleportJuice;
-    public float maxTeleportJuice; 
+    public float maxTeleportJuice;
     public float baseTpjuiceCost;
     public float tpDamageOutput;
     public float contactDamageOutput;
-    public int currency;
     public float teleportJuiceRegenMultiplier;
     public float teleportJuiceDrainMultiplier;
     public float teleportRange;
+    public int currency;
+    public int combo;
 
     [Header("Player Stats Tweaks")]
     [SerializeField] private int startMaxHitPoints;
@@ -60,6 +67,9 @@ public class PlayerBehaviour2 : MonoBehaviour
     [SerializeField] private ParticleSystem TpParticles;
     [SerializeField] private TpUIColorManager tpAsset;
     [SerializeField] private AfterTpUIBar afterTpBar;
+    [SerializeField] private TextMeshProUGUI comboText;
+    [SerializeField] private TextMeshProUGUI currencyText;
+    [SerializeField] private ScoreManager scoreManager;
 
     private SpriteRenderer[] spR;
     private float fixedDeltaTime;
@@ -81,9 +91,15 @@ public class PlayerBehaviour2 : MonoBehaviour
     private Vector2 beginPointPos = Vector2.zero;
     private Vector2 endPointPos = Vector2.zero;
     private Vector2 moveDirection = Vector2.up;
+    private float moveDirectionDistance = 0;
+
     [HideInInspector] public Vector2 lastGroundPos = Vector2.zero;
     [HideInInspector] public bool justTP = false;
-    private float moveDirectionDistance = 0;
+    [HideInInspector] public bool playerNotHittable = false;
+
+    private Coroutine comboCooldownRoutine;
+    private Coroutine updateComboRoutine;
+
     private GameManager gm;
 
     private Rigidbody2D playerRigidbody2D;
@@ -103,6 +119,9 @@ public class PlayerBehaviour2 : MonoBehaviour
         Input.simulateMouseWithTouches = true;
         playerRigidbody2D = GetComponent<Rigidbody2D>();
 
+        comboText.text = "0";
+
+        combo = 0;
         maxTeleportJuice = startMaxTeleportJuice;
         maxHitPoints = startMaxHitPoints;
         hitPoints = maxHitPoints;
@@ -118,7 +137,6 @@ public class PlayerBehaviour2 : MonoBehaviour
         healthSlider.maxValue = maxHitPoints;
         teleportSlider.maxValue = maxTeleportJuice;
 
-        playerCircleMask.transform.localScale = new Vector3(teleportRange * 2, teleportRange * 2, teleportRange * 2);
         brightnessFilter.enabled = false;
 
         spR = teleportTargetGraphic.GetComponentsInChildren<SpriteRenderer>();
@@ -140,9 +158,9 @@ public class PlayerBehaviour2 : MonoBehaviour
             TimeSlow();
             CalcTargetPos();
             PostProcessingEffectsOn();
-            if (!gm.activeRoom.GetComponent<RoomManager>().isCompleted) 
-            { 
-                TPJuiceDrain(); 
+            if (!gm.activeRoom.GetComponent<RoomManager>().isCompleted)
+            {
+                TPJuiceDrain();
             }
 
             notTeleported = true;
@@ -191,7 +209,7 @@ public class PlayerBehaviour2 : MonoBehaviour
             }
 
             //TC regen
-            if(teleportJuice < maxTeleportJuice)
+            if (teleportJuice < maxTeleportJuice)
             {
                 TPJuiceRegen();
             }
@@ -247,7 +265,7 @@ public class PlayerBehaviour2 : MonoBehaviour
         //}
 
         //TPJ cap
-        if(teleportJuice > maxTeleportJuice)
+        if (teleportJuice > maxTeleportJuice)
         {
             teleportJuice = maxTeleportJuice;
         }
@@ -255,15 +273,19 @@ public class PlayerBehaviour2 : MonoBehaviour
         //update UI
         healthSlider.value = hitPoints;
         teleportSlider.value = teleportJuice;
+        currencyText.text = currency.ToString();
+        playerCircleMask.transform.localScale = new Vector3((teleportRange * 2) / 0.9f, (teleportRange * 2) / 0.9f, (teleportRange * 2) / 0.9f);
+        scoreManager.score = currency;
+
 
         //Death check
         if (hitPoints <= 0)
         {
-            Death();
+            gm.DeathFade(this);
         }
 
         //max out TC when room is completed
-        if(gm.activeRoom != null)
+        if (gm.activeRoom != null)
         {
             if (gm.activeRoom.GetComponent<RoomManager>().isCompleted)
             {
@@ -332,7 +354,7 @@ public class PlayerBehaviour2 : MonoBehaviour
         firstRegen = true;
 
         afterTpBar.gameObject.SetActive(true);
-        
+
         teleportJuice -= Time.deltaTime * teleportJuiceDrainMultiplier;
 
         if (firstDrain)
@@ -405,7 +427,7 @@ public class PlayerBehaviour2 : MonoBehaviour
 
     private void StartPostProcessingEffectsOff()
     {
-        if(PostProcessingEffectsOffRoutine != null) { StopCoroutine(PostProcessingEffectsOffRoutine); }
+        if (PostProcessingEffectsOffRoutine != null) { StopCoroutine(PostProcessingEffectsOffRoutine); }
         PostProcessingEffectsOffRoutine = StartCoroutine(IEPostProcessingEffectsOff());
     }
 
@@ -417,7 +439,7 @@ public class PlayerBehaviour2 : MonoBehaviour
 
         float lerpTime = 0;
 
-        while(lerpTime < 1)
+        while (lerpTime < 1)
         {
             lerpTime += Time.deltaTime / tpAnimDuration;
             float evaluatedLerpTime = tpAnimCurve.Evaluate(lerpTime);
@@ -441,23 +463,19 @@ public class PlayerBehaviour2 : MonoBehaviour
         transform.position = lastGroundPos;
         hitPoints--;
         gm.healthLossParticles.Play();
-    }
-
-    private void Death()
-    {
-        SceneManager.LoadScene("Menu");
+        StartCoroutine(OnDamage());
     }
 
     public void GotUpgrade(UpgradeType upgradeType)
     {
-        if(upgradeType == UpgradeType.MaxHpUpgrade)
+        if (upgradeType == UpgradeType.MaxHpUpgrade)
         {
             maxHitPoints += gm.maxHPCellAmntInc;
             hitPoints += gm.maxHPCellAmntInc;
 
             healthSlider.maxValue = maxHitPoints;
         }
-        else if(upgradeType == UpgradeType.MaxTpjUpgrade)
+        else if (upgradeType == UpgradeType.MaxTpjUpgrade)
         {
             maxTeleportJuice += gm.maxTpjAmntInc;
 
@@ -485,10 +503,97 @@ public class PlayerBehaviour2 : MonoBehaviour
         }
     }
 
+    public void CheckCombo(float cellRegenAmount)
+    {
+        int c = combo;
+        float cc = combo;
+
+        if(cellRegenAmount != 0)
+        {
+            teleportJuice += baseTpjuiceCost * (1/3) * c + (cellRegenAmount/(2/3));
+            currency += Mathf.RoundToInt(cc/2-0.1f);
+        }
+    }
+
+    private void UpdateComboText(int c, bool color)
+    {
+        if (updateComboRoutine == null)
+        {
+            updateComboRoutine = StartCoroutine(UpdateComboTextIE(c, color));
+        }
+        else
+        {
+            StopCoroutine(updateComboRoutine);
+            updateComboRoutine = StartCoroutine(UpdateComboTextIE(c, color));
+        }
+    }
+
+    private IEnumerator UpdateComboTextIE(int c, bool color)
+    {
+        comboText.text = combo.ToString();
+        
+        Color newCol = Color.HSVToRGB(Random.Range(0f, 1f), 1, 1);
+
+        if (!color)
+        {
+            newCol = Color.black;
+        }
+
+        Color oldCol = Color.black;
+
+        float lerpTime = 0;
+
+        while (lerpTime < 1)
+        {
+            lerpTime += Time.deltaTime / comboTextColoredTimer;
+            float EvaluatedLerpTime = comboTextColoredCurve.Evaluate(lerpTime);
+
+            //SpriteRenderer sP = GetComponent<SpriteRenderer>();
+            //sP.color = new Color(sP.color.r, sP.color.g, sP.color.b, EvaluatedLerpTime);
+
+            float newR = Mathf.Lerp(oldCol.r, newCol.r, EvaluatedLerpTime);
+            float newG = Mathf.Lerp(oldCol.g, newCol.g, EvaluatedLerpTime);
+            float newB = Mathf.Lerp(oldCol.b, newCol.b, EvaluatedLerpTime);
+            comboText.color = new Color(newR, newG, newB);
+
+            yield return null;
+        }
+    }
+
     private IEnumerator JustTPCooldown()
     {
-        yield return new WaitForSecondsRealtime(justTPTimer);
+        yield return new WaitForSecondsRealtime(justTPTimer / 2);
+        //check for combo
+        if (gm.hitEnemy)
+        {
+            combo++;
+            UpdateComboText(combo, true);
+            gm.hitEnemy = false;
+        }
+        else
+        {
+            combo = 0;
+            UpdateComboText(combo, false);
+        }
+        yield return new WaitForSecondsRealtime(justTPTimer/2);
         justTP = false;
+
+        if(comboCooldownRoutine == null)
+        {
+            comboCooldownRoutine = StartCoroutine(ComboCooldownIE());
+        }
+        else
+        {
+            StopCoroutine(comboCooldownRoutine);
+            comboCooldownRoutine = StartCoroutine(ComboCooldownIE());
+        }
+    }
+
+    private IEnumerator ComboCooldownIE()
+    {
+        yield return new WaitForSeconds(comboCooldownTimer);
+        combo = 0;
+        UpdateComboText(combo, false);
     }
 
     private IEnumerator RegenCooldown()
@@ -499,5 +604,41 @@ public class PlayerBehaviour2 : MonoBehaviour
         yield return new WaitForSecondsRealtime(1.15f);
         //Debug.Log("Ayy2");
         regenAllowed = true;
+    }
+
+    public IEnumerator OnDamage()
+    {
+        float lerpTime = 0;
+
+        Physics2D.IgnoreLayerCollision(13, 11, true);
+        Physics2D.IgnoreLayerCollision(13, 12, true);
+        playerNotHittable = true;
+        Physics2D.IgnoreLayerCollision(13, 12, false);
+        Color oldColor = gm.mainCam.backgroundColor;
+
+        //Debug.Log("player hit");
+
+        while (lerpTime < 1)
+        {
+            lerpTime += Time.deltaTime / hitCooldown;
+            float playerColorEvaluatedLerpTime = onHitPlayerGFXCurve.Evaluate(lerpTime);
+            float backgroundColorEvaluatedLerpTime = onHitBackgroundGFXCurve.Evaluate(lerpTime);
+
+            SpriteRenderer sP = GetComponent<SpriteRenderer>();
+            sP.color = new Color(sP.color.r, sP.color.g, sP.color.b, playerColorEvaluatedLerpTime);
+
+            float newR = Mathf.Lerp(oldColor.r, 0.8f, backgroundColorEvaluatedLerpTime);
+            float newG = Mathf.Lerp(oldColor.g, 0.8f, backgroundColorEvaluatedLerpTime);
+            float newB = Mathf.Lerp(oldColor.b, 0.8f, backgroundColorEvaluatedLerpTime);
+            gm.mainCam.backgroundColor = new Color(newR, newG, newB);
+
+            yield return null;
+        }
+
+        Physics2D.IgnoreLayerCollision(13, 11, false);
+        playerNotHittable = false;
+
+        //Debug.Log("player done hitting");
+        yield return null;
     }
 }

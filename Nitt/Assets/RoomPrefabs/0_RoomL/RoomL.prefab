@@ -6971,8 +6971,10 @@ MonoBehaviour:
   downEntrance: {fileID: 0}
   leftEntrance: {fileID: 6583096633288177413}
   enemiesToBeSpawned: []
-  isCompleted: 0
+  isCompleted: 1
   hasPlayer: 0
+  doorOn: 1
+  justEntered: 0
 --- !u!1 &2032232576054699337
 GameObject:
   m_ObjectHideFlags: 0

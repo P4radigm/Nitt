@@ -10,9 +10,13 @@ public class UpgradeBehaviour : MonoBehaviour
     private Collider2D col;
     private Rigidbody2D rb;
 
+    private GameManager gm;
+
     // Start is called before the first frame update
     void Start()
     {
+        gm = GameManager.instance;
+
         sp = GetComponent<SpriteRenderer>();
         if(sp == null) { sp = gameObject.AddComponent<SpriteRenderer>(); }
 
@@ -33,6 +37,7 @@ public class UpgradeBehaviour : MonoBehaviour
 
         if (pB != null)
         {
+            gm.StartCoroutine(gm.ShowUpgradeType(upgradeType));
             pB.GotUpgrade(upgradeType);
             Destroy(gameObject);
         }

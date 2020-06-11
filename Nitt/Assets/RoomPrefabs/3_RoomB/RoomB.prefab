@@ -7086,7 +7086,7 @@ GameObject:
   - component: {fileID: 8763917709881012138}
   - component: {fileID: 8763917709881012141}
   m_Layer: 10
-  m_Name: RoomB 1
+  m_Name: RoomB
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -7188,8 +7188,10 @@ MonoBehaviour:
   downEntrance: {fileID: 4040572390995246447}
   leftEntrance: {fileID: 0}
   enemiesToBeSpawned: []
-  isCompleted: 0
+  isCompleted: 1
   hasPlayer: 0
+  doorOn: 1
+  justEntered: 0
 --- !u!1 &8763917710268513217
 GameObject:
   m_ObjectHideFlags: 0

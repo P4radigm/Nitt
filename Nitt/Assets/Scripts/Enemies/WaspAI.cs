@@ -38,7 +38,7 @@ public class WaspAI : MonoBehaviour
 
     void OnPathComplete(Path p)
     {
-        if (!p.error)
+        if (!p.error && p.CompleteState != PathCompleteState.Partial)
         {
             path = p;
             currentWaypoint = 0;
@@ -49,6 +49,11 @@ public class WaspAI : MonoBehaviour
     void FixedUpdate()
     {
         if (path == null)
+        {
+            return;
+        }
+
+        if (path.CompleteState == PathCompleteState.Partial)
         {
             return;
         }

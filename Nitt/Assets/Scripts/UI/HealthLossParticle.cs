@@ -23,7 +23,7 @@ public class HealthLossParticle : MonoBehaviour
     {
         if (isHP)
         {
-            Debug.Log(pS.isPlaying);
+            //Debug.Log(pS.isPlaying);
             float maxHP = pB.maxHitPoints;
             float damageInc = 1;
 

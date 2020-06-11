@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Pathfinding;
+using UnityEngine.UI;
+using TMPro;
+using UnityEngine.SceneManagement;
 
 public enum RoomTypeEnum
 {
@@ -70,7 +73,7 @@ public class GameManager : MonoBehaviour
     [Space]
     [SerializeField] private GameObject[] RoomsLRBT;
 
-    [Header("UpgradeValues")]
+    [Header("Upgrade Values")]
     public int maxHPCellAmntInc;
     public float maxTpjAmntInc;
     public float tpjRegenAmntInc;
@@ -108,11 +111,37 @@ public class GameManager : MonoBehaviour
     public ParticleSystem afterEnemySpawnFX;
     public ParticleSystem healthLossParticles;
 
+    [Header("UI")]
+    [SerializeField] private Canvas hpTpBars;
+    [SerializeField] private Canvas comboCurrencyText;
+    [SerializeField] private Canvas upgradeType;
+    [Space]
+    [SerializeField] private float upgradeShowTime;
+    [Space]
+    [SerializeField] private string[] upgradeText;
+
+    [Header("Combo Stuff")]
+    [HideInInspector] public bool hitEnemy = false;
+
+    [Header("On Death")]
+    [SerializeField] private SpriteRenderer brightnessFilterDeath;
+    [SerializeField] private Color endCol;
+    [SerializeField] private float deathFadeDuration;
+    [SerializeField] private AnimationCurve deathFadeCurve;
+    private Coroutine deathFadeRoutine;
+
+    //1 -> Max HP Upgrade
+    //2 -> Max TPJ Upgrade
+    //3 -> TPJ Regen Upgrade
+    //4 -> TP Range Upgrade
+    //5 -> TP Time Upgrade
+    //6 -> TP Damage Upgrade
+    //7 -> Contact Damage Upgrade
+
 
     // Start is called before the first frame update
     void Start()
     {
-        healthLossParticles.Play();
         topRooms = new GameObject[8][];
         topRooms[0] = RoomsB;
         topRooms[1] = RoomsTB;
@@ -167,6 +196,7 @@ public class GameManager : MonoBehaviour
                 freezeRoutine = StartCoroutine(DoFreezeIE()); 
             }
         }
+
     }
 
     public void EnemyDeath(GameObject enemyThatDies)
@@ -192,10 +222,63 @@ public class GameManager : MonoBehaviour
         AstarPath.active.Scan();
     }
 
+    public void DeathFade(PlayerBehaviour2 pB)
+    {
+        if(deathFadeRoutine != null) { StopCoroutine(deathFadeRoutine); }
+        StartCoroutine(deathFadeIE(pB));
+    }
+
+    private IEnumerator deathFadeIE(PlayerBehaviour2 pB)
+    {
+        brightnessFilterDeath.enabled = true;
+        pB.enabled = false;
+
+        Color _oldCol = brightnessFilterDeath.color;
+        Color _Col = Color.black;
+
+        float _timeValue = 0;
+
+        while (_timeValue < 1)
+        {
+            _timeValue += Time.deltaTime / deathFadeDuration;
+            float _evaluatedTimeValue = deathFadeCurve.Evaluate(_timeValue);
+            _Col.r = Mathf.Lerp(_oldCol.r, endCol.r, _evaluatedTimeValue);
+            _Col.g = Mathf.Lerp(_oldCol.g, endCol.g, _evaluatedTimeValue);
+            _Col.b = Mathf.Lerp(_oldCol.b, endCol.b, _evaluatedTimeValue);
+
+            brightnessFilterDeath.color = _Col;
+
+            yield return null;
+        }
+
+        deathFadeRoutine = null;
+
+        SceneManager.LoadScene("Death");
+
+        yield return null;
+    }
+
     public void Freeze(float _freezeDuration)
     {
         pendingFreezeDuration = _freezeDuration;
         freezeDuration = _freezeDuration;
+    }
+
+    public IEnumerator ShowUpgradeType(UpgradeType upgrType)
+    {
+        hpTpBars.gameObject.SetActive(false);
+        comboCurrencyText.gameObject.SetActive(false);
+        upgradeType.gameObject.GetComponentInChildren<TextMeshProUGUI>().text = upgradeText[(int)upgrType];
+        upgradeType.gameObject.SetActive(true);
+
+
+        yield return new WaitForSecondsRealtime(upgradeShowTime);
+
+        hpTpBars.gameObject.SetActive(true);
+        comboCurrencyText.gameObject.SetActive(true);
+        upgradeType.gameObject.SetActive(false);
+
+        yield return null;
     }
 
     IEnumerator DoFreezeIE()

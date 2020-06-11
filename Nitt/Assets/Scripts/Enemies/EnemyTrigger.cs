@@ -33,7 +33,7 @@ public class EnemyTrigger : MonoBehaviour
 
         PlayerBehaviour2 pB = collision.gameObject.GetComponent<PlayerBehaviour2>();
 
-        if (pB != null && active)
+        if (pB != null && active && !pB.playerNotHittable)
         {
             float playerTpDamageOutput = pB.tpDamageOutput;
             float playerContactDamageOutput = pB.contactDamageOutput;
@@ -49,7 +49,10 @@ public class EnemyTrigger : MonoBehaviour
                 }
                 else
                 {
-                    pB.teleportJuice += cellRegenAmount;
+                    //pB.teleportJuice += cellRegenAmount;
+                    gm.hitEnemy = true;
+                    //Debug.Log(cellRegenAmount);
+                    pB.CheckCombo(cellRegenAmount);
                     gm.Freeze(0.08f);
                     gm.EnemyDeath(parentObject);
                 }
@@ -57,11 +60,12 @@ public class EnemyTrigger : MonoBehaviour
             else
             {
                 pB.hitPoints -= damageAmount;
+                pB.StartCoroutine(pB.OnDamage());
 
                 gm.healthLossParticles.Clear();
                 gm.healthLossParticles.Play();
 
-                gm.Freeze(0.5f);
+                gm.Freeze(0.2f);
 
                 if (takesContactDamage)
                 {
