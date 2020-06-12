@@ -11,14 +11,19 @@ public class ScoreManager : MonoBehaviour
 
     private float newColTimer;
     private Color currentColor;
+    private Color staticColor;
     private Scene activeScene;
     [HideInInspector] public int score;
+
+    private OptionsManager oM;
 
     // Start is called before the first frame update
     void Start()
     {
+        oM = OptionsManager.instance;
         DontDestroyOnLoad(this.gameObject);
         newColTimer = newColTime;
+        staticColor = Color.HSVToRGB(Random.Range(0f, 1f), 1, 1);
     }
 
     // Update is called once per frame
@@ -54,7 +59,8 @@ public class ScoreManager : MonoBehaviour
 
     private void UpdateColor()
     {
-        currentColor = Color.HSVToRGB(Random.Range(0f, 1f), 1, 1);
+        if (oM.flashingColours) { currentColor = Color.HSVToRGB(Random.Range(0f, 1f), 1, 1); }
+        else { currentColor = staticColor; }
 
         scoreText.color = currentColor;
     }

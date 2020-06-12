@@ -41,6 +41,8 @@ public class BatAI : MonoBehaviour
     void Start()
     {
         target = GameObject.FindGameObjectWithTag("Player").GetComponent<Transform>();
+        tpTarget.GetComponent<Renderer>().sortingOrder = 25;
+        tpTarget.SetActive(false);
         seeker = GetComponent<Seeker>();
         rb = GetComponent<Rigidbody2D>();
 

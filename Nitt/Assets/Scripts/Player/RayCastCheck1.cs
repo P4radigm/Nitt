@@ -12,13 +12,13 @@ public class RayCastCheck1 : MonoBehaviour
     void Update()
     {
         rayCastHits[0] = Physics2D.Raycast(transform.position, Vector2.up, Mathf.Infinity, 1 << LayerMask.NameToLayer("Environment"));
-        Debug.DrawRay(transform.position, Vector2.up * 1000, Color.white);
+        Debug.DrawRay(transform.position, Vector2.up * 1000, Color.magenta);
         rayCastHits[1] = Physics2D.Raycast(transform.position, Vector2.right, Mathf.Infinity, 1 << LayerMask.NameToLayer("Environment"));
-        Debug.DrawRay(transform.position, Vector2.right * 1000, Color.white);
+        Debug.DrawRay(transform.position, Vector2.right * 1000, Color.magenta);
         rayCastHits[2] = Physics2D.Raycast(transform.position, Vector2.down, Mathf.Infinity, 1 << LayerMask.NameToLayer("Environment"));
-        Debug.DrawRay(transform.position, Vector2.down * 1000, Color.white);
+        Debug.DrawRay(transform.position, Vector2.down * 1000, Color.magenta);
         rayCastHits[3] = Physics2D.Raycast(transform.position, Vector2.left, Mathf.Infinity, 1 << LayerMask.NameToLayer("Environment"));
-        Debug.DrawRay(transform.position, Vector2.left * 1000, Color.white);
+        Debug.DrawRay(transform.position, Vector2.left * 1000, Color.magenta);
 
         if (rayCastHits[0].collider != null) { distances[0] = rayCastHits[0].distance; }
         else { distances[0] = Mathf.Infinity; }

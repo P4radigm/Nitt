@@ -142,6 +142,7 @@ public class RoomManager : MonoBehaviour
                     enemyMat.SetFloat("_ColorOffset", Random.Range(0, 100f));
 
                     if (!oM.flashingColours) { enemyMat.SetFloat("_ScrollSpeed", 0); }
+                    else { enemyMat.SetFloat("_ScrollSpeed", 10); }
 
                     prefabRenderers[j].material = enemyMat;
                 }
