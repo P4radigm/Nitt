@@ -11,11 +11,15 @@ public class TpUIColorManager : MonoBehaviour
     [SerializeField] private float newColTime;
 
     private float newColTimer;
-    public Color currentColor; 
+    public Color currentColor;
+    public Color staticColor;
+    private OptionsManager oM;
 
     // Start is called before the first frame update
     void Start()
     {
+        oM = OptionsManager.instance;
+        staticColor = Color.HSVToRGB(Random.Range(0f, 1f), 1, 1);
         newColTimer = newColTime;
     }
 
@@ -38,7 +42,9 @@ public class TpUIColorManager : MonoBehaviour
         ParticleSystem.MainModule mainDP = drainParticles.gameObject.GetComponent<ParticleSystem>().main;
         ParticleSystem.MainModule tpLossParticlesMain = tpLossParticles.gameObject.GetComponent<ParticleSystem>().main;
 
-        currentColor = Color.HSVToRGB(Random.Range(0f, 1f), 1, 1);
+        if (oM.flashingColours) { currentColor = Color.HSVToRGB(Random.Range(0f, 1f), 1, 1); }
+        else { currentColor = staticColor; }
+        
 
         mainDP.startColor = new ParticleSystem.MinMaxGradient(new Color(currentColor.r - 0.1f, currentColor.g - 0.1f, currentColor.b - 0.1f, 1), currentColor);
         afterTpBar.color = currentColor;

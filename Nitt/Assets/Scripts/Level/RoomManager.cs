@@ -48,6 +48,7 @@ public class RoomManager : MonoBehaviour
 
     private bool spawnedEnemiesYet;
     private GameManager gm;
+    private OptionsManager oM;
     private Shader enemyShader;
     //private Material EnemyMat = new Material(Shader.Find("ShaderGraphs/ColorCycle"));
 
@@ -55,6 +56,7 @@ public class RoomManager : MonoBehaviour
 
     void Start()
     {
+        oM = OptionsManager.instance;
         gm = GameManager.instance;
         pB = FindObjectOfType<PlayerBehaviour2>();
         mainCamera = FindObjectOfType<Camera>();
@@ -138,6 +140,9 @@ public class RoomManager : MonoBehaviour
                 {
                     Material enemyMat = new Material(enemyShader);
                     enemyMat.SetFloat("_ColorOffset", Random.Range(0, 100f));
+
+                    if (!oM.flashingColours) { enemyMat.SetFloat("_ScrollSpeed", 0); }
+
                     prefabRenderers[j].material = enemyMat;
                 }
             }

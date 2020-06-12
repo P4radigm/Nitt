@@ -32,6 +32,8 @@ public class SlugAI : MonoBehaviour
     private bool readyToFire = false;
     private Vector2 direction = Vector2.zero;
     private Vector2 initialWaspPos;
+    private Shader enemyShader;
+    private OptionsManager oM;
 
     private Coroutine waspGFXroutine;
     private Coroutine ShootWaspRoutine = null;
@@ -40,6 +42,8 @@ public class SlugAI : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        oM = OptionsManager.instance;
+        enemyShader = Shader.Find("NittShader/ColorCycle");
         //boxCollider = GetComponent<BoxCollider2D>();
         yHitboxOffset = hitboxHeight / 2;
 
@@ -133,7 +137,14 @@ public class SlugAI : MonoBehaviour
         yield return new WaitForSeconds(pauzeBeforeShoot);
 
         //shoot
-        Instantiate(waspPrefab, waspGraphic.transform.position, Quaternion.identity, transform.parent);
+        GameObject wasp = Instantiate(waspPrefab, waspGraphic.transform.position, Quaternion.identity, transform.parent);
+        Material waspMat = new Material(enemyShader);
+        waspMat.SetFloat("_ColorOffset", Random.Range(0, 100f));
+
+        if (!oM.flashingColours) { waspMat.SetFloat("_ScrollSpeed", 0); }
+
+        wasp.GetComponentInChildren<Renderer>().material = waspMat;
+
         waspGraphic.SetActive(false);
         readyToFire = false;
 

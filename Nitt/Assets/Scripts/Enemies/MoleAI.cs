@@ -15,9 +15,15 @@ public class MoleAI : MonoBehaviour
     private Vector2 direction = Vector2.zero;
     private float shootCooldown;
 
+    private Shader enemyShader;
+    private OptionsManager oM;
+
     // Start is called before the first frame update
     void Start()
     {
+        oM = OptionsManager.instance;
+        enemyShader = Shader.Find("NittShader/ColorCycle");
+
         shootCooldown = startShootCooldown;
         shootCooldown = Random.Range(1, startShootCooldown);
 
@@ -94,10 +100,33 @@ public class MoleAI : MonoBehaviour
 
     private void Shoot()
     {
-        Instantiate(needlePrefab, transform.position + new Vector3(instantiateOffset, instantiateOffset, 0), Quaternion.Euler(0, 0, -45), transform.parent);
-        Instantiate(needlePrefab, transform.position + new Vector3(instantiateOffset, -instantiateOffset, 0), Quaternion.Euler(0, 0, -135), transform.parent);
-        Instantiate(needlePrefab, transform.position + new Vector3(-instantiateOffset, -instantiateOffset, 0), Quaternion.Euler(0, 0, 135), transform.parent);
-        Instantiate(needlePrefab, transform.position + new Vector3(-instantiateOffset, instantiateOffset, 0), Quaternion.Euler(0, 0, 45), transform.parent);
+        GameObject needle =  Instantiate(needlePrefab, transform.position + new Vector3(instantiateOffset, instantiateOffset, 0), Quaternion.Euler(0, 0, -45), transform.parent);
+        GameObject needle1 = Instantiate(needlePrefab, transform.position + new Vector3(instantiateOffset, -instantiateOffset, 0), Quaternion.Euler(0, 0, -135), transform.parent);
+        GameObject needle2 = Instantiate(needlePrefab, transform.position + new Vector3(-instantiateOffset, -instantiateOffset, 0), Quaternion.Euler(0, 0, 135), transform.parent);
+        GameObject needle3 = Instantiate(needlePrefab, transform.position + new Vector3(-instantiateOffset, instantiateOffset, 0), Quaternion.Euler(0, 0, 45), transform.parent);
+
+        Material needleMat = new Material(enemyShader);
+        Material needle1Mat = new Material(enemyShader);
+        Material needle2Mat = new Material(enemyShader);
+        Material needle3Mat = new Material(enemyShader);
+
+        needleMat.SetFloat("_ColorOffset", Random.Range(0, 100f));
+        needle1Mat.SetFloat("_ColorOffset", Random.Range(0, 100f));
+        needle2Mat.SetFloat("_ColorOffset", Random.Range(0, 100f));
+        needle3Mat.SetFloat("_ColorOffset", Random.Range(0, 100f));
+
+        if (!oM.flashingColours) 
+        {
+            needleMat.SetFloat("_ScrollSpeed", 0); 
+            needle1Mat.SetFloat("_ScrollSpeed", 0); 
+            needle2Mat.SetFloat("_ScrollSpeed", 0); 
+            needle3Mat.SetFloat("_ScrollSpeed", 0); 
+        }
+
+        needle.GetComponentInChildren<Renderer>().material = needleMat;
+        needle1.GetComponentInChildren<Renderer>().material = needle1Mat;
+        needle2.GetComponentInChildren<Renderer>().material = needle2Mat;
+        needle3.GetComponentInChildren<Renderer>().material = needle3Mat;
     }
 
     private void OnCollisionEnter2D(Collision2D collision)

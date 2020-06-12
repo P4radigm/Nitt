@@ -101,6 +101,7 @@ public class PlayerBehaviour2 : MonoBehaviour
     private Coroutine updateComboRoutine;
 
     private GameManager gm;
+    private OptionsManager oM;
 
     private Rigidbody2D playerRigidbody2D;
 
@@ -115,6 +116,7 @@ public class PlayerBehaviour2 : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        oM = OptionsManager.instance;
         gm = GameManager.instance;
         Input.simulateMouseWithTouches = true;
         playerRigidbody2D = GetComponent<Rigidbody2D>();
@@ -414,9 +416,12 @@ public class PlayerBehaviour2 : MonoBehaviour
 
     private void PostProcessingEffectsOn()
     {
-        ld.active = true;
+        if (oM.screenDistortion) { ld.active = true; }
+        else { ld.active = false; }
         vg.active = true;
         cha.active = true;
+        //if (oM.screenDistortion) { cha.active = true; }
+        //else { cha.active = false; }
 
         ld.intensity.value = normalDistortionValue;
         ld.center.value = new Vector2(gm.mainCam.WorldToScreenPoint(teleportTargetGraphic.transform.position).x / gm.mainCam.scaledPixelWidth, gm.mainCam.WorldToScreenPoint(teleportTargetGraphic.transform.position).y / gm.mainCam.scaledPixelHeight);
@@ -510,8 +515,9 @@ public class PlayerBehaviour2 : MonoBehaviour
 
         if(cellRegenAmount != 0)
         {
-            teleportJuice += baseTpjuiceCost * (1/3) * c + (cellRegenAmount/(2/3));
-            currency += Mathf.RoundToInt(cc/2-0.1f);
+            Debug.Log(baseTpjuiceCost * (1f / 3f) * c + (cellRegenAmount * (2f / 3f)));
+            teleportJuice += baseTpjuiceCost * (1f/3f) * c + (cellRegenAmount * (2f/3f));
+            currency += Mathf.RoundToInt((cc/2) - 0.1f);
         }
     }
 
@@ -630,7 +636,7 @@ public class PlayerBehaviour2 : MonoBehaviour
             float newR = Mathf.Lerp(oldColor.r, 0.8f, backgroundColorEvaluatedLerpTime);
             float newG = Mathf.Lerp(oldColor.g, 0.8f, backgroundColorEvaluatedLerpTime);
             float newB = Mathf.Lerp(oldColor.b, 0.8f, backgroundColorEvaluatedLerpTime);
-            gm.mainCam.backgroundColor = new Color(newR, newG, newB);
+            if (oM.flashingColours) { gm.mainCam.backgroundColor = new Color(newR, newG, newB); }
 
             yield return null;
         }

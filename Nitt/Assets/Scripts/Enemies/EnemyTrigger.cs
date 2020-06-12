@@ -53,7 +53,7 @@ public class EnemyTrigger : MonoBehaviour
                     gm.hitEnemy = true;
                     //Debug.Log(cellRegenAmount);
                     pB.CheckCombo(cellRegenAmount);
-                    gm.Freeze(0.08f);
+                    //gm.Freeze(0.08f);
                     gm.EnemyDeath(parentObject);
                 }
             }
@@ -65,7 +65,7 @@ public class EnemyTrigger : MonoBehaviour
                 gm.healthLossParticles.Clear();
                 gm.healthLossParticles.Play();
 
-                gm.Freeze(0.2f);
+                //gm.Freeze(0.2f);
 
                 if (takesContactDamage)
                 {
